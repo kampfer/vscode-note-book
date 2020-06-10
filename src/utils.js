@@ -8,13 +8,15 @@ exports.walk = function walk(path, callback, ignoreHidden = false) {
         files = null,
         stat = fs.statSync(path);
 
-    if (stat.isDirectory() && (!ignoreHidden && /^./.test(path))) {
+    if (stat.isDirectory()) {
 
         root = path;
 
         let paths = fs.readdirSync(path);
 
         for(let i = 0, l = paths.length; i < l; i++) {
+
+            if (ignoreHidden && /^\./.test(paths[i])) continue;
 
             let subPath = pathLib.join(path, paths[i]),
                 subStat = fs.statSync(subPath);
