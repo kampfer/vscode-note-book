@@ -5,31 +5,29 @@ const { walk } = require('./utils');
 const path = require('path');
 const fs = require('fs');
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-function activate(context) {
+const cwd = vscode.workspace.workspaceFolders[0];
+const fsPath = cwd.uri.fsPath;  // 工作目录的地址
 
-    const cwd = vscode.workspace.workspaceFolders[0];
+function activate(context) {
 
     if (!cwd) return;
 
-    const fsPath = cwd.uri.fsPath;
-    const existsNoteBooks = fs.existsSync(path.join(fsPath, '.note_books'));
+    // https://code.visualstudio.com/api/extension-guides/command#creating-new-commands
+    let disposable = vscode.commands.registerCommand('vscode-note-book.init', function () {
 
-    if (!existsNoteBooks) return;
+        const localStoragePath = path.join(fsPath, '.note_books');
+        const existsNoteBooks = fs.existsSync(localStoragePath);
 
-    walk(fsPath, function (root, dirs, files) {
+        if (!existsNoteBooks) {
 
-    }, true);
+            fs.mkdirSync(localStoragePath);
 
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
-    // The commandId parameter must match the command field in package.json
-    let disposable = vscode.commands.registerCommand('vscode-note-book.helloWorld', function () {
-        // The code you place here will be executed every time your command is executed
+        } else {
 
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Hello World from vscode-note-book!');
+            vscode.window.showInformationMessage('./.note_books已存在，不需要重复初始化。');
+
+        }
+
     });
 
     context.subscriptions.push(disposable);

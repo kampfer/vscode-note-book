@@ -10,14 +10,15 @@
         "Other"
     ],
     "activationEvents": [
-        "onView:note-book"
+        "onView:note-book",
+        "onCommand:vscode-note-book.init"
     ],
     "main": "./src/extension.js",
     "contributes": {
         "commands": [
             {
-                "command": "vscode-note-book.helloWorld",
-                "title": "Hello World"
+                "command": "vscode-note-book.init",
+                "title": "init"
             }
         ],
         "views": {
