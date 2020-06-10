@@ -16,6 +16,7 @@ exports.walk = function walk(path, callback, ignoreHidden = false) {
 
         for(let i = 0, l = paths.length; i < l; i++) {
 
+            // 忽略名字以'.'开头的文件和文件夹
             if (ignoreHidden && /^\./.test(paths[i])) continue;
 
             let subPath = pathLib.join(path, paths[i]),

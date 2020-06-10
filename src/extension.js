@@ -1,5 +1,9 @@
+// https://code.visualstudio.com/api/extension-guides/tree-view
+
 const vscode = require('vscode');
 const { walk } = require('./utils');
+const path = require('path');
+const fs = require('fs');
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -10,12 +14,13 @@ function activate(context) {
     if (!cwd) return;
 
     const fsPath = cwd.uri.fsPath;
+    const existsNoteBooks = fs.existsSync(path.join(fsPath, '.note_books'));
+
+    if (!existsNoteBooks) return;
 
     walk(fsPath, function (root, dirs, files) {
-        if (root[0] !== '.') {
-            console.log(root, dirs, files);
-        }
-    });
+
+    }, true);
 
     // The command has been defined in the package.json file
     // Now provide the implementation of the command with  registerCommand

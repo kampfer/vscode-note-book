@@ -20,20 +20,11 @@
                 "title": "Hello World"
             }
         ],
-        "viewsContainers": {
-            "activitybar": [
-                {
-                    "id": "note-book",
-                    "title": "笔记",
-                    "icon": "books.svg"
-                }
-            ]
-        },
         "views": {
-            "note-book": [
+            "explorer": [
                 {
                     "id": "note-book",
-                    "name": ""
+                    "name": "标签"
                 }
             ]
         }
