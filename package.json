@@ -11,7 +11,8 @@
     ],
     "activationEvents": [
         "onView:note-book",
-        "onCommand:vscode-note-book.init"
+        "onCommand:vscode-note-book.init",
+        "onCommand:vscode-note-book.scanTags"
     ],
     "main": "./src/extension.js",
     "contributes": {
@@ -19,6 +20,10 @@
             {
                 "command": "vscode-note-book.init",
                 "title": "init"
+            },
+            {
+                "command": "vscode-note-book.scanTags",
+                "title": "scanTags"
             }
         ],
         "views": {

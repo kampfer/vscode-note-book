@@ -1,4 +1,6 @@
 const fs = require('fs');
+const path = require('path');
+const { walk } = require('./utils');
 
 class Tags {
 
@@ -28,7 +30,15 @@ class Tags {
          */
         if (storePath) {
 
-            this._tags = JSON.parse(fs.readFileSync(storePath));
+            let tags;
+
+            try {
+
+                tags = JSON.parse(fs.readFileSync(storePath));
+
+            } catch(e) {}
+
+            this._tags = tags ? tags : [];
 
         } else {
 
@@ -39,15 +49,50 @@ class Tags {
 
     }
 
-    extractTagsFromDocument(document) {
+    extractTags(resource) {
 
-        let documentContent = document.getText(),
-            tagsContent = documentContent.match(Tags.testReg),
+        let tagsContent = resource.match(Tags.testReg),
             tagsOfDocument;
 
         if (tagsContent) tagsOfDocument = tagsContent[0].split('\n').filter((v, i, arr) => i !== 0 && i !== arr.length - 1);
 
+        return tagsOfDocument;
+
+    }
+
+    extractTagsFromDocument(document) {
+
+        let tagsOfDocument = this.extractTags(document.getText());
+
         if (tagsOfDocument) tagsOfDocument.forEach(tagName => this.addTagToNote(tagName, document.uri.fsPath));
+
+    }
+
+    extractTagsFromFolder(folder) {
+
+        // 忽略.开头的文件夹
+        walk(folder, (roots, dirs, files) => {
+
+            if (!files) return;
+
+            for (let i = 0, l = files.length; i < l; i++) {
+
+                let file = files[i];
+
+                if (path.extname(file) !== '.md') continue;
+
+                let content = fs.readFileSync(file).toString(),
+                    tagsOfDocument = this.extractTags(content);
+
+                if (tagsOfDocument) {
+
+                    tagsOfDocument.forEach(tagName => this.addTagToNote(tagName, file));
+
+                }
+
+            }
+
+        }, true);
 
     }
 

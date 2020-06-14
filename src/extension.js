@@ -3,7 +3,6 @@
 const vscode = require('vscode');
 const path = require('path');
 const fs = require('fs');
-const { walk } = require('./utils');
 const Tags = require('./Tags');
 const Notes = require('./Notes');
 
@@ -41,6 +40,14 @@ function activate(context) {
                     vscode.window.showInformationMessage('./.note_books已存在，不需要重复初始化。');
 
                 }
+
+            }
+        },
+        {
+            id: `${extensionName}.scanTags`,
+            fn: function () {
+
+                tags.extractTagsFromFolder(fsPath);
 
             }
         }
