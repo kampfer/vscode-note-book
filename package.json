@@ -22,8 +22,8 @@
                 "title": "init"
             },
             {
-                "command": "vscode-note-book.scanTags",
-                "title": "scanTags"
+                "command": "vscode-note-book.scan",
+                "title": "scan"
             }
         ],
         "views": {

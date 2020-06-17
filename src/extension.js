@@ -1,10 +1,9 @@
 // https://code.visualstudio.com/api/extension-guides/tree-view
 
 const vscode = require('vscode');
-const path = require('path');
-const fs = require('fs');
-const Tags = require('./Tags');
-const Notes = require('./Notes');
+// const path = require('path');
+// const fs = require('fs');
+const NoteBook = require('./NoteBook');
 
 const extensionName = 'vscode-note-book';
 
@@ -14,41 +13,19 @@ function activate(context) {
 
     if (!cwd) return;
 
-    let fsPath = cwd.uri.fsPath;  // 工作目录的地址
-    let localStoragePath = path.join(fsPath, '.note_books');
-    let tagsStoragePath = path.join(localStoragePath, 'tags.json');
-    let notesStoragePath = path.join(localStoragePath, 'notes.json');
-
-    const tags = new Tags(tagsStoragePath);
-    const notes = new Notes(notesStoragePath);
+    let noteBook = new NoteBook({ rootPath: cwd.uri.fsPath });
 
     const commands = [
         {
             id: `${extensionName}.init`,
             fn: function () {
-
-                let existsNoteBooks = fs.existsSync(localStoragePath);
-
-                if (!existsNoteBooks) {
-
-                    fs.mkdirSync(localStoragePath);
-                    fs.openSync(path.join(localStoragePath, 'notes.json'), '[]');
-                    fs.openSync(path.join(localStoragePath, 'tags.json'), '[]');
-
-                } else {
-
-                    vscode.window.showInformationMessage('./.note_books已存在，不需要重复初始化。');
-
-                }
-
+                noteBook.init();
             }
         },
         {
-            id: `${extensionName}.scanTags`,
+            id: `${extensionName}.scan`,
             fn: function () {
-
-                tags.extractTagsFromFolder(fsPath);
-
+                noteBook.scan();
             }
         }
     ];
@@ -62,7 +39,7 @@ function activate(context) {
         let textEditor = vscode.window.activeTextEditor,
             document = textEditor.document;
 
-        tags.extractTagsFromDocument(document);
+        noteBook.extractTagsFromDocument(document);
 
         console.log('onDidSaveTextDocument');
 
