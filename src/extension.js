@@ -54,6 +54,12 @@ function activate(context) {
 
     }
 
+    return {
+        extendMarkdownIt(md) {
+            return md.use(require('markdown-it-codepen'));
+        }
+    };
+
 }
 
 // this method is called when your extension is deactivated

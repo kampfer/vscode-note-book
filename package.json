@@ -16,6 +16,7 @@
     ],
     "main": "./src/extension.js",
     "contributes": {
+        "markdown.markdownItPlugins": true,
         "commands": [
             {
                 "command": "vscode-note-book.init",
@@ -50,5 +51,8 @@
         "mocha": "^7.1.2",
         "typescript": "^3.8.3",
         "vscode-test": "^1.3.0"
+    },
+    "dependencies": {
+        "markdown-it-codepen": "^1.0.1"
     }
 }
