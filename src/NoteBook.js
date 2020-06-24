@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const vscode = require('vscode');
 const { walk } = require('./utils');
 
 const testTagsReg = /\\begin\{tags\}([\s\w*]*)\\end\{tags\}/;
@@ -27,7 +28,10 @@ class NoteBook {
 
             console.log(`读取${this.localStoragePath}失败~`);
 
-            data = { tags: [] };
+            data = {
+                tags: [],
+                notes: {}
+            };
 
         }
 
@@ -41,6 +45,12 @@ class NoteBook {
 
         this._timer = setTimeout(() => fs.writeFileSync(this.localStoragePath, JSON.stringify(this.data)), 50);
 
+    }
+
+    getCurrentNotePath() {
+        let textEditor = vscode.window.activeTextEditor,
+            document = textEditor.document;
+        return document.uri.fsPath;
     }
 
     existsNoteBook() {
@@ -169,6 +179,74 @@ class NoteBook {
         if (needUpdate) this.store();
 
         console.log(needUpdate);
+
+    }
+
+    // path引用的note：callees
+    // 引用path的note：callers
+    createNote(path, callers = [], callees = []) {
+        return this.data.notes[path] = { callers, callees, path };
+    }
+
+    deleteNote(path) {
+        delete this.data.notes[path];
+    }
+
+    getNote(notePath) {
+        return this.data.notes[notePath];
+    }
+
+    // caller引用callee
+    addDuplexLink(caller, callee) {
+
+        let callerNote = this.getNote(caller),
+            calleeNote = this.getNote(callee);
+
+        if (callerNote) {
+
+            let calleeExits = false;
+
+            for (let i = 0, l = callerNote.callees.length; i < l; i++) {
+
+                if (callerNote.callees[i] === callee) {
+
+                    calleeExits = true;
+                    break;
+
+                }
+
+            }
+
+            if (!calleeExits) callerNote.callees.push(callee);
+
+        } else {
+
+            this.createNote(caller, [], [callee]);
+
+        }
+
+        if (calleeNote) {
+
+            let callerExits = false;
+
+            for (let i = 0, l = calleeNote.callers.length; i < l; i++) {
+
+                if (calleeNote.callers[i] === caller) {
+
+                    callerExits = true;
+                    break;
+
+                }
+
+            }
+
+            if (!callerExits) calleeNote.callers.push(caller);
+
+        } else {
+
+            this.createNote(callee, [caller], []);
+
+        }
 
     }
 

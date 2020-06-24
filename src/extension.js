@@ -13,7 +13,7 @@ function activate(context) {
 
     if (!cwd) return;
 
-    let noteBook = new NoteBook({ rootPath: cwd.uri.fsPath });
+    const noteBook = new NoteBook({ rootPath: cwd.uri.fsPath });
 
     const commands = [
         {
@@ -73,7 +73,7 @@ function activate(context) {
                         let labelStart = state.pos + 2,
                             labelEnd = labelStart;
 
-                        while(labelEnd < state.posMax) {
+                        while (labelEnd < state.posMax) {
 
                             // 0x5d === ']'
                             if (content.charCodeAt(labelEnd) === 0x5d && content.charCodeAt(labelEnd + 1) === 0x5d) {
@@ -88,8 +88,14 @@ function activate(context) {
                         if (labelEnd < 0 || labelEnd > state.posMax) return false;
 
                         let title = content.substring(labelStart, labelEnd - 1),
-                            href = `${title}.md`,
-                            token;
+                            href = `${title}.md`;
+
+                        // 记录duplex链接
+                        // noteBook.addDuplexLinkToNote(title);
+                        // noteBook.addDuplexLink(caller, callee);
+                        noteBook.addDuplexLink(noteBook.getCurrentNotePath(), href);
+
+                        let token;
 
                         // <a href="somePath">title</a>
                         // ^^^^^^^^^^^^^^^^^^^
