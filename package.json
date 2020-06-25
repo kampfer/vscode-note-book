@@ -53,6 +53,7 @@
         "vscode-test": "^1.3.0"
     },
     "dependencies": {
-        "markdown-it-codepen": "^1.0.1"
+        "markdown-it-codepen": "^1.0.1",
+        "throttle-debounce": "^2.2.1"
     }
 }
