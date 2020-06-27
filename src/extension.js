@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const NoteBook = require('./NoteBook');
 // const { debounce } = require('throttle-debounce');
+const duplexLInkPlugin = require('./markdown-it-duplex-link');
 
 const extensionName = 'vscode-note-book';
 
@@ -26,14 +27,17 @@ function activate(context) {
         {
             id: `${extensionName}.init`,
             fn: function () {
+                noteBook.reset();
                 noteBook.scan(cwd.uri.fsPath);
                 noteBook.store(true);
+                vscode.window.showInformationMessage(`笔记本初始化完成！`);
             }
         },
         {
             id: `${extensionName}.scan`,
             fn: function () {
                 noteBook.scan(cwd.uri.fsPath);
+                vscode.window.showInformationMessage(`扫描${cwd.uri.fsPath}完成！`);
             }
         }
     ];
@@ -90,68 +94,7 @@ function activate(context) {
         extendMarkdownIt(md) {
 
             return md.use(require('markdown-it-codepen'))
-                // 参考markdown-it link规则实现`[[xxx]]`语法
-                // https://github.com/markdown-it/markdown-it/blob/master/lib/rules_inline/link.js
-                .use(function (md) {
-
-                    md.inline.ruler.before('emphasis', 'duplexLink', function (state, silent) {
-
-                        if (silent) return false;
-
-                        let content = state.src;
-
-                        // 0x5b === '['
-                        if (content.charCodeAt(state.pos) !== 0x5b) return false;
-
-                        let labelStart = state.pos + 2,
-                            labelEnd = labelStart;
-
-                        while (labelEnd < state.posMax) {
-
-                            // 0x5d === ']'
-                            if (content.charCodeAt(labelEnd) === 0x5d && content.charCodeAt(labelEnd + 1) === 0x5d) {
-                                labelEnd++;
-                                break;
-                            }
-
-                            labelEnd++;
-
-                        }
-
-                        if (labelEnd < 0 || labelEnd > state.posMax) return false;
-
-                        let title = content.substring(labelStart, labelEnd - 1),
-                            href = `${title}.md`,
-                            token;
-
-                        // <a href="somePath">title</a>
-                        // ^^^^^^^^^^^^^^^^^^^
-                        token = state.push('link_open', 'a', 1);
-                        token.attrs = [
-                            ['href', href],
-                            ['title', title]
-                        ];
-
-                        // <a href="somePath">title</a>
-                        //                    ^^^^^
-                        token = state.push('text', '', 0);
-                        token.content = title;
-                        token._isDuplexLink = true;
-
-                        // <a href="somePath">title</a>
-                        //                         ^^^^
-                        token = state.push('link_close', 'a', -1);
-
-                        // markdown-it从新pos开始继续分析剩下文档内容
-                        state.pos = labelEnd + 1;
-
-                        mdState = state;
-
-                        return true;
-
-                    });
-
-                });
+                .use(duplexLInkPlugin());
             
         }
     };

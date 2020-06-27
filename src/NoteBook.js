@@ -3,7 +3,7 @@ const path = require('path');
 const { walk } = require('./utils');
 const { debounce } = require('throttle-debounce');
 const MarkdownIt = require('markdown-it');
-const markdownItDuplexLinkPlugin = require('./markdown-it-duplex-link')();
+const markdownItDuplexLinkPlugin = require('./markdown-it-duplex-link');
 
 class NoteBook {
 
@@ -35,6 +35,11 @@ class NoteBook {
 
         this.data = data;
 
+    }
+
+    reset() {
+        this._modified = false;
+        this.data = { notes: {} };
     }
 
     store(force) {
@@ -78,17 +83,16 @@ class NoteBook {
 
         let notes = Object.keys(this.data.notes);
 
-        for(let i = 0, l = notes.length; i < l; i++) {
+        for (let i = 0, l = notes.length; i < l; i++) {
 
             let noteName = notes[i],
                 note = this.getNote(noteName);
 
-            for(let j = 0, k = note.callees.length; j < k; j++) {
+            for (let j = 0, k = note.callees.length; j < k; j++) {
 
-                let callee = note.callees[j],
-                    calleeNote = this.getNote(callee);
+                let callee = note.callees[j];
 
-                if (calleeNote) calleeNote.callers.push(noteName);
+                this.addCallerOfNote(callee, noteName);
 
             }
 
@@ -99,12 +103,12 @@ class NoteBook {
     extractDuplexLinks(content) {
 
         let md = new MarkdownIt();
-        md.use(markdownItDuplexLinkPlugin);
+        md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin());
 
         let tokens = md.parse(content, {}),
             links = [];
 
-        for(let i = 0, l = tokens.length; i < l; i++) {
+        for (let i = 0, l = tokens.length; i < l; i++) {
 
             let token = tokens[i];
 
@@ -114,7 +118,7 @@ class NoteBook {
 
                 if (children) {
 
-                    for(let j = 0, k = children.length; j < k; j++) {
+                    for (let j = 0, k = children.length; j < k; j++) {
 
                         let child = children[j];
 
@@ -144,104 +148,120 @@ class NoteBook {
         delete this.data.notes[path];
     }
 
-    getNote(notePath) {
-        return this.data.notes[notePath];
+    getNote(noteName) {
+        return this.data.notes[noteName];
     }
 
-    deleteCalleeOfNote(notePath, callee) {
+    deleteCalleeOfNote(noteName, callee) {
 
-        let note = this.getNote(notePath),
-            index = note.callees.indexOf(callee);
+        let note = this.getNote(noteName);
+
+        if (!note || !note.callees) return;
+
+        let index = note.callees.indexOf(callee);
 
         if (index >= 0) note.callees.splice(index, 1);
 
     }
 
-    addCalleeOfNote(notePath, callee) {
-        
-        let note = this.getNote(notePath),
-            index = note.callees.indexOf(callee);
+    addCalleeOfNote(noteName, callee) {
+
+        let note = this.getNote(noteName);
+
+        if (!note) return;
+
+        if (!note.callees) note.callees = [];
+
+        let index = note.callees.indexOf(callee);
 
         if (index < 0) note.callees.push(callee);
-    
+
     }
 
-    deleteCallerOfNote(notePath, caller) {
+    deleteCallerOfNote(noteName, caller) {
 
-        let note = this.getNote(notePath),
-            index = note.callers.indexOf(caller);
+        let note = this.getNote(noteName);
+
+        if (!note || !note.callers) return;
+
+        let index = note.callers.indexOf(caller);
 
         if (index >= 0) note.callers.splice(index, 1);
 
     }
 
-    addCallerOfNote(notePath, caller) {
+    addCallerOfNote(noteName, caller) {
 
-        let note = this.getNote(notePath),
-            index = note.callers.indexOf(caller);
+        let note = this.getNote(noteName);
+
+        if (!note) return;
+
+        if (!note.callers) note.callers = [];
+
+        let index = note.callers.indexOf(caller);
 
         if (index < 0) note.callers.push(caller);
 
     }
 
     // 先删除后添加
-    setCalleesOfNote(notePath, callees) {
+    // setCalleesOfNote(noteName, callees) {
 
-        let note = this.getNote(notePath);
+    //     let note = this.getNote(noteName);
 
-        if (note) {
+    //     if (note) {
 
-            let oldCallees = note.callees;
+    //         let oldCallees = note.callees;
 
-        } else {
+    //     } else {
 
-            note = this.createNote(notePath, callees);
+    //         note = this.createNote(noteName, callees);
 
-        }
+    //     }
 
-        note.callees = [...callees];
+    //     note.callees = [...callees];
 
-        for(let i = 0, l = oldCallees.length; i < l; i++) {
+    //     for(let i = 0, l = oldCallees.length; i < l; i++) {
 
-            let oldCallee = oldCallees[i];
+    //         let oldCallee = oldCallees[i];
 
-            // 旧记录在新记录中不存在，需要删除旧记录
-            if (callees.indexOf(oldCallee) < 0) {
+    //         // 旧记录在新记录中不存在，需要删除旧记录
+    //         if (callees.indexOf(oldCallee) < 0) {
 
-                // 删除note.callees中的记录
-                // this.deleteCalleeOfNote(notePath, oldCallee);
+    //             // 删除note.callees中的记录
+    //             // this.deleteCalleeOfNote(noteName, oldCallee);
 
-                // 删除oldCallee.callers中的记录
-                this.deleteCallerOfNote(oldCallee, notePath);
+    //             // 删除oldCallee.callers中的记录
+    //             this.deleteCallerOfNote(oldCallee, noteName);
 
-            }
+    //         }
 
-        }
+    //     }
 
-        for(let i = 0, l = callees.length; i < l; i++) {
+    //     for(let i = 0, l = callees.length; i < l; i++) {
 
-            let callee = callees[i];
+    //         let callee = callees[i];
 
-            // 新记录在旧记录中不存在，需要添加新记录
-            if (oldCallees.indexOf(callee) < 0) {
+    //         // 新记录在旧记录中不存在，需要添加新记录
+    //         if (oldCallees.indexOf(callee) < 0) {
 
-                // 在note.callee中添加新记录
-                // this.addCalleeOfNote(notePath, callee);
+    //             // 在note.callee中添加新记录
+    //             // this.addCalleeOfNote(noteName, callee);
 
-                // 在callee.caller中添加新记录
-                this.addCallerOfNote(callee, notePath);
+    //             // 在callee.caller中添加新记录
+    //             this.addCallerOfNote(callee, noteName);
 
-            }
+    //         }
 
-        }
+    //     }
 
-    }
+    // }
 
-    addDuplexLink(note, link) {
+    // addDuplexLink(note, link) {
 
 
 
-    }
+    // }
 
 }
 
