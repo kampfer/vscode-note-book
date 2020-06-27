@@ -27,7 +27,6 @@ function activate(context) {
         {
             id: `${extensionName}.init`,
             fn: function () {
-                noteBook.reset();
                 noteBook.scan(cwd.uri.fsPath);
                 noteBook.store(true);
                 vscode.window.showInformationMessage(`笔记本初始化完成！`);

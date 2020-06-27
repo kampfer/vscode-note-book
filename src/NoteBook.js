@@ -56,6 +56,8 @@ class NoteBook {
 
     scan(noteBookDir) {
 
+        this.reset();
+
         // 忽略.开头的文件夹
         walk(noteBookDir, (roots, dirs, files) => {
 
@@ -88,6 +90,8 @@ class NoteBook {
             let noteName = notes[i],
                 note = this.getNote(noteName);
 
+            if (!note.callees) continue;
+
             for (let j = 0, k = note.callees.length; j < k; j++) {
 
                 let callee = note.callees[j];
@@ -106,7 +110,7 @@ class NoteBook {
         md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin());
 
         let tokens = md.parse(content, {}),
-            links = [];
+            links;
 
         for (let i = 0, l = tokens.length; i < l; i++) {
 
@@ -122,7 +126,13 @@ class NoteBook {
 
                         let child = children[j];
 
-                        if (child.isDuplexLink) links.push(`${child.content}.md`);
+                        if (child.isDuplexLink) {
+
+                            if (!links) links = [];
+
+                            links.push(`${child.content}.md`);
+
+                        }
 
                     }
 
