@@ -1,20 +1,21 @@
 const fs = require('fs');
 const path = require('path');
-const vscode = require('vscode');
 const { walk } = require('./utils');
-
-const testTagsReg = /\\begin\{tags\}([\s\w*]*)\\end\{tags\}/;
+const { debounce } = require('throttle-debounce');
+const MarkdownIt = require('markdown-it');
+const markdownItDuplexLinkPlugin = require('./markdown-it-duplex-link')();
 
 class NoteBook {
 
     constructor({
-        rootPath,
-        localStoragePath = path.join(rootPath, '.note_book')
+        localStoragePath
     }) {
 
-        this.rootPath = rootPath;
-
         this.localStoragePath = localStoragePath;
+
+        this._modified = false;
+
+        this.store = debounce(1000, this.store);
 
         let data = null;
 
@@ -26,10 +27,7 @@ class NoteBook {
 
         } catch (e) {
 
-            console.log(`读取${this.localStoragePath}失败~`);
-
             data = {
-                tags: [],
                 notes: {}
             };
 
@@ -39,156 +37,110 @@ class NoteBook {
 
     }
 
-    store() {
+    store(force) {
 
-        clearTimeout(this._timer);
+        if (!this._modified && !force) return;
 
-        this._timer = setTimeout(() => fs.writeFileSync(this.localStoragePath, JSON.stringify(this.data)), 50);
+        this._modified = false;
+
+        fs.writeFileSync(this.localStoragePath, JSON.stringify(this.data));
+
+        console.log(`写入${this.localStoragePath}`);
 
     }
 
-    getCurrentNotePath() {
-        let textEditor = vscode.window.activeTextEditor,
-            document = textEditor.document;
-        return document.uri.fsPath;
-    }
+    scan(noteBookDir) {
 
-    existsNoteBook() {
-        return fs.existsSync(this.localStoragePath);
-    }
+        // 忽略.开头的文件夹
+        walk(noteBookDir, (roots, dirs, files) => {
 
-    init() {
-        if (!this.existsNoteBook()) {
-            this.store();
+            if (!files) return;
+
+            for (let i = 0, l = files.length; i < l; i++) {
+
+                let file = files[i];
+
+                if (path.extname(file) !== '.md') continue;
+
+                let noteName = path.basename(file),
+                    note = this.getNote(noteName);
+
+                if (!note) note = this.createNote(noteName);
+
+                let content = fs.readFileSync(file).toString(),
+                    links = this.extractDuplexLinks(content);
+
+                note.callees = links;
+
+            }
+
+        }, true);
+
+        let notes = Object.keys(this.data.notes);
+
+        for(let i = 0, l = notes.length; i < l; i++) {
+
+            let noteName = notes[i],
+                note = this.getNote(noteName);
+
+            for(let j = 0, k = note.callees.length; j < k; j++) {
+
+                let callee = note.callees[j],
+                    calleeNote = this.getNote(callee);
+
+                if (calleeNote) calleeNote.callers.push(noteName);
+
+            }
+
         }
+
     }
 
-    scan() {
-        try {
-            // 忽略.开头的文件夹
-            walk(this.rootPath, (roots, dirs, files) => {
+    extractDuplexLinks(content) {
 
-                if (!files) return;
+        let md = new MarkdownIt();
+        md.use(markdownItDuplexLinkPlugin);
 
-                for (let i = 0, l = files.length; i < l; i++) {
+        let tokens = md.parse(content, {}),
+            links = [];
 
-                    let file = files[i];
+        for(let i = 0, l = tokens.length; i < l; i++) {
 
-                    if (path.extname(file) !== '.md') continue;
+            let token = tokens[i];
 
-                    let content = fs.readFileSync(file).toString(),
-                        tagsOfDocument = this.extractTags(content);
+            if (token.type === 'inline') {
 
-                    if (tagsOfDocument) {
+                let children = token.children;
 
-                        tagsOfDocument.forEach(tagName => this.addTagToNote(tagName, file));
+                if (children) {
+
+                    for(let j = 0, k = children.length; j < k; j++) {
+
+                        let child = children[j];
+
+                        if (child.isDuplexLink) links.push(`${child.content}.md`);
 
                     }
 
                 }
 
-            }, true);
-        } catch (e) { debugger; }
-    }
-
-    extractTags(resource) {
-        let tagsContent = resource.match(testTagsReg),
-            tagsOfDocument;
-
-        if (tagsContent) tagsOfDocument = tagsContent[0].split('\n').filter((v, i, arr) => i !== 0 && i !== arr.length - 1);
-
-        return tagsOfDocument;
-    }
-
-    createTag(tagName, notes = []) {
-        this.data.tags.push({ tagName, notes });
-    }
-
-    deleteTag(tagName) {
-
-        let tags = this.data.tags;
-
-        for (let i = 0, l = tags.length; i < l; i++) {
-
-            if (tags[i].tagName === tagName) {
-
-                tags.splice(i, 1);
-
-                break;
-
             }
 
         }
 
-    }
-
-    getTag(tagName) {
-
-        let tags = this.data.tags;
-
-        for (let i = 0, l = tags.length; i < l; i++) {
-
-            if (tags[i].tagName === tagName) return tags[i];
-
-        }
-
-        return null;
-
-    }
-
-    extractTagsFromDocument(document) {
-
-        let tagsOfDocument = this.extractTags(document.getText());
-
-        if (tagsOfDocument) tagsOfDocument.forEach(tagName => this.addTagToNote(tagName, document.uri.fsPath));
-
-    }
-
-    addTagToNote(tagName, notePath) {
-
-        let tag = this.getTag(tagName),
-            needUpdate = false;
-
-        if (tag) {
-
-            let notes = tag.notes,
-                hasNote = false;
-
-            for (let i = 0, l = notes.length; i < l; i++) {
-
-                if (notes[i] === notePath) hasNote = true;
-
-            }
-
-            if (hasNote === false) {
-
-                notes.push(notePath);
-
-                needUpdate = true;
-
-            }
-
-        } else {
-
-            this.createTag(tagName, [notePath]);
-
-            needUpdate = true;
-
-        }
-
-        if (needUpdate) this.store();
-
-        console.log(needUpdate);
+        return links;
 
     }
 
     // path引用的note：callees
     // 引用path的note：callers
-    createNote(path, callers = [], callees = []) {
-        return this.data.notes[path] = { callers, callees, path };
+    createNote(name, path, callees, callers) {
+        this._modified = true;
+        return this.data.notes[name] = { callers, callees, path };
     }
 
     deleteNote(path) {
+        this._modified = true;
         delete this.data.notes[path];
     }
 
@@ -196,57 +148,98 @@ class NoteBook {
         return this.data.notes[notePath];
     }
 
-    // caller引用callee
-    addDuplexLink(caller, callee) {
+    deleteCalleeOfNote(notePath, callee) {
 
-        let callerNote = this.getNote(caller),
-            calleeNote = this.getNote(callee);
+        let note = this.getNote(notePath),
+            index = note.callees.indexOf(callee);
 
-        if (callerNote) {
+        if (index >= 0) note.callees.splice(index, 1);
 
-            let calleeExits = false;
+    }
 
-            for (let i = 0, l = callerNote.callees.length; i < l; i++) {
+    addCalleeOfNote(notePath, callee) {
+        
+        let note = this.getNote(notePath),
+            index = note.callees.indexOf(callee);
 
-                if (callerNote.callees[i] === callee) {
+        if (index < 0) note.callees.push(callee);
+    
+    }
 
-                    calleeExits = true;
-                    break;
+    deleteCallerOfNote(notePath, caller) {
 
-                }
+        let note = this.getNote(notePath),
+            index = note.callers.indexOf(caller);
 
-            }
+        if (index >= 0) note.callers.splice(index, 1);
 
-            if (!calleeExits) callerNote.callees.push(callee);
+    }
+
+    addCallerOfNote(notePath, caller) {
+
+        let note = this.getNote(notePath),
+            index = note.callers.indexOf(caller);
+
+        if (index < 0) note.callers.push(caller);
+
+    }
+
+    // 先删除后添加
+    setCalleesOfNote(notePath, callees) {
+
+        let note = this.getNote(notePath);
+
+        if (note) {
+
+            let oldCallees = note.callees;
 
         } else {
 
-            this.createNote(caller, [], [callee]);
+            note = this.createNote(notePath, callees);
 
         }
 
-        if (calleeNote) {
+        note.callees = [...callees];
 
-            let callerExits = false;
+        for(let i = 0, l = oldCallees.length; i < l; i++) {
 
-            for (let i = 0, l = calleeNote.callers.length; i < l; i++) {
+            let oldCallee = oldCallees[i];
 
-                if (calleeNote.callers[i] === caller) {
+            // 旧记录在新记录中不存在，需要删除旧记录
+            if (callees.indexOf(oldCallee) < 0) {
 
-                    callerExits = true;
-                    break;
+                // 删除note.callees中的记录
+                // this.deleteCalleeOfNote(notePath, oldCallee);
 
-                }
+                // 删除oldCallee.callers中的记录
+                this.deleteCallerOfNote(oldCallee, notePath);
 
             }
 
-            if (!callerExits) calleeNote.callers.push(caller);
+        }
 
-        } else {
+        for(let i = 0, l = callees.length; i < l; i++) {
 
-            this.createNote(callee, [caller], []);
+            let callee = callees[i];
+
+            // 新记录在旧记录中不存在，需要添加新记录
+            if (oldCallees.indexOf(callee) < 0) {
+
+                // 在note.callee中添加新记录
+                // this.addCalleeOfNote(notePath, callee);
+
+                // 在callee.caller中添加新记录
+                this.addCallerOfNote(callee, notePath);
+
+            }
 
         }
+
+    }
+
+    addDuplexLink(note, link) {
+
+
 
     }
 
