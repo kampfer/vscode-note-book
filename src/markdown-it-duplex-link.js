@@ -1,68 +1,62 @@
-module.exports = function (callback) {
+module.exports = function (md) {
 
-    return function (md) {
+    md.inline.ruler.before('emphasis', 'duplexLink', function (state, silent) {
 
-        md.inline.ruler.before('emphasis', 'duplexLink', function (state, silent) {
+        if (silent) return false;
 
-            if (silent) return false;
+        let content = state.src;
 
-            let content = state.src;
+        // 0x5b === '['
+        if (content.charCodeAt(state.pos) !== 0x5b) return false;
 
-            // 0x5b === '['
-            if (content.charCodeAt(state.pos) !== 0x5b) return false;
+        if (content.charCodeAt(state.pos + 1) !== 0x5b) return false;
 
-            if (content.charCodeAt(state.pos + 1) !== 0x5b) return false;
+        let labelStart = state.pos + 2,
+            labelEnd = labelStart,
+            findClose = false;
 
-            let labelStart = state.pos + 2,
-                labelEnd = labelStart,
-                findClose = false;
+        while (labelEnd < state.posMax) {
 
-            while (labelEnd < state.posMax) {
-
-                // 0x5d === ']'
-                if (content.charCodeAt(labelEnd) === 0x5d && content.charCodeAt(labelEnd + 1) === 0x5d) {
-                    labelEnd++;
-                    findClose = true;
-                    break;
-                }
-
+            // 0x5d === ']'
+            if (content.charCodeAt(labelEnd) === 0x5d && content.charCodeAt(labelEnd + 1) === 0x5d) {
                 labelEnd++;
-
+                findClose = true;
+                break;
             }
 
-            if (!findClose) return false;
+            labelEnd++;
 
-            let title = content.substring(labelStart, labelEnd - 1),
-                href = `${title}.md`,
-                token;
+        }
 
-            // <a href="somePath">title</a>
-            // ^^^^^^^^^^^^^^^^^^^
-            token = state.push('link_open', 'a', 1);
-            token.attrs = [
-                ['href', href],
-                ['title', title]
-            ];
+        if (!findClose) return false;
 
-            // <a href="somePath">title</a>
-            //                    ^^^^^
-            token = state.push('text', '', 0);
-            token.content = title;
-            token.isDuplexLink = true;
+        let title = content.substring(labelStart, labelEnd - 1),
+            href = `${title}.md`,
+            token;
 
-            // <a href="somePath">title</a>
-            //                         ^^^^
-            token = state.push('link_close', 'a', -1);
+        // <a href="somePath">title</a>
+        // ^^^^^^^^^^^^^^^^^^^
+        token = state.push('link_open', 'a', 1);
+        token.attrs = [
+            ['href', href],
+            ['title', title]
+        ];
 
-            // markdown-it从新pos开始继续分析剩下文档内容
-            state.pos = labelEnd + 1;
+        // <a href="somePath">title</a>
+        //                    ^^^^^
+        token = state.push('text', '', 0);
+        token.content = title;
+        token.isDuplexLink = true;
 
-            if (callback) callback(state);
+        // <a href="somePath">title</a>
+        //                         ^^^^
+        token = state.push('link_close', 'a', -1);
 
-            return true;
+        // markdown-it从新pos开始继续分析剩下文档内容
+        state.pos = labelEnd + 1;
 
-        });
+        return true;
 
-    }
+    });
 
 };
