@@ -13,9 +13,13 @@ class NoteBook {
 
         this.localStoragePath = localStoragePath;
 
-        this._modified = false;
-
         this.store = debounce(1000, this.store);
+
+        let md = new MarkdownIt();
+        md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin);
+        this.md = md;
+
+        this._modified = false;
 
         let data = null;
 
@@ -33,13 +37,13 @@ class NoteBook {
 
         }
 
-        this.data = data;
+        this._data = data;
 
     }
 
     reset() {
         this._modified = false;
-        this.data = { notes: {} };
+        this._data = { notes: {} };
     }
 
     store(force) {
@@ -48,7 +52,7 @@ class NoteBook {
 
         this._modified = false;
 
-        fs.writeFileSync(this.localStoragePath, JSON.stringify(this.data));
+        fs.writeFileSync(this.localStoragePath, JSON.stringify(this._data));
 
         console.log(`写入${this.localStoragePath}`);
 
@@ -83,7 +87,7 @@ class NoteBook {
 
         }, true);
 
-        let notes = Object.keys(this.data.notes);
+        let notes = Object.keys(this._data.notes);
 
         for (let i = 0, l = notes.length; i < l; i++) {
 
@@ -106,10 +110,7 @@ class NoteBook {
 
     extractDuplexLinks(content) {
 
-        let md = new MarkdownIt();
-        md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin());
-
-        let tokens = md.parse(content, {}),
+        let tokens = this.md.parse(content, {}),
             links;
 
         for (let i = 0, l = tokens.length; i < l; i++) {
@@ -149,17 +150,19 @@ class NoteBook {
     // path引用的note：callees
     // 引用path的note：callers
     createNote(name, path, callees, callers) {
+        if (!this._data.notes[name]) return;
         this._modified = true;
-        return this.data.notes[name] = { callers, callees, path };
+        return this._data.notes[name] = { callers, callees, path };
     }
 
-    deleteNote(path) {
+    deleteNote(noteName) {
+        if (!this._data.notes[noteName]) return;
         this._modified = true;
-        delete this.data.notes[path];
+        delete this._data.notes[noteName];
     }
 
     getNote(noteName) {
-        return this.data.notes[noteName];
+        return this._data.notes[noteName];
     }
 
     deleteCalleeOfNote(noteName, callee) {
@@ -213,65 +216,6 @@ class NoteBook {
         if (index < 0) note.callers.push(caller);
 
     }
-
-    // 先删除后添加
-    // setCalleesOfNote(noteName, callees) {
-
-    //     let note = this.getNote(noteName);
-
-    //     if (note) {
-
-    //         let oldCallees = note.callees;
-
-    //     } else {
-
-    //         note = this.createNote(noteName, callees);
-
-    //     }
-
-    //     note.callees = [...callees];
-
-    //     for(let i = 0, l = oldCallees.length; i < l; i++) {
-
-    //         let oldCallee = oldCallees[i];
-
-    //         // 旧记录在新记录中不存在，需要删除旧记录
-    //         if (callees.indexOf(oldCallee) < 0) {
-
-    //             // 删除note.callees中的记录
-    //             // this.deleteCalleeOfNote(noteName, oldCallee);
-
-    //             // 删除oldCallee.callers中的记录
-    //             this.deleteCallerOfNote(oldCallee, noteName);
-
-    //         }
-
-    //     }
-
-    //     for(let i = 0, l = callees.length; i < l; i++) {
-
-    //         let callee = callees[i];
-
-    //         // 新记录在旧记录中不存在，需要添加新记录
-    //         if (oldCallees.indexOf(callee) < 0) {
-
-    //             // 在note.callee中添加新记录
-    //             // this.addCalleeOfNote(noteName, callee);
-
-    //             // 在callee.caller中添加新记录
-    //             this.addCallerOfNote(callee, noteName);
-
-    //         }
-
-    //     }
-
-    // }
-
-    // addDuplexLink(note, link) {
-
-
-
-    // }
 
 }
 
