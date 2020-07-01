@@ -5,6 +5,34 @@ const { debounce } = require('throttle-debounce');
 const MarkdownIt = require('markdown-it');
 const markdownItDuplexLinkPlugin = require('./markdown-it-duplex-link');
 
+function findDuplexLinks(token, arr) {
+
+    if (token.type === 'inline' && token.children) {
+
+        for(let i = 0, l = token.children.length; i < l; i++) {
+
+            let child = token.children[i];
+
+            if (child.isDuplexLink) {
+
+                arr.push(`${child.content}.md`);
+
+            } else {
+
+                findDuplexLinks(child, arr);
+
+            }
+
+        }
+
+    } else if (token.isDuplexLink) {
+
+        arr.push(`${token.content}.md`);
+
+    }
+
+}
+
 class NoteBook {
 
     constructor({
@@ -19,7 +47,7 @@ class NoteBook {
         md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin);
         this.md = md;
 
-        this._modified = false;
+        // this._modified = false;
 
         let data = null;
 
@@ -42,15 +70,15 @@ class NoteBook {
     }
 
     reset() {
-        this._modified = false;
+        // this._modified = false;
         this._data = { notes: {} };
     }
 
     store(force) {
 
-        if (!this._modified && !force) return;
+        // if (!this._modified && !force) return;
 
-        this._modified = false;
+        // this._modified = false;
 
         fs.writeFileSync(this.localStoragePath, JSON.stringify(this._data));
 
@@ -79,7 +107,7 @@ class NoteBook {
                 if (!note) note = this.createNote(noteName);
 
                 let content = fs.readFileSync(file).toString(),
-                    links = this.extractDuplexLinks(content);
+                    links = this.extractDuplexLinksFromFileContent(content);
 
                 note.callees = links;
 
@@ -108,7 +136,7 @@ class NoteBook {
 
     }
 
-    extractDuplexLinks(content) {
+    extractDuplexLinksFromFileContent(content) {
 
         let tokens = this.md.parse(content, {}),
             links;
@@ -147,17 +175,36 @@ class NoteBook {
 
     }
 
+    extractDuplexLinksFromMarkdownItState(state) {
+
+        let tokens = state.tokens,
+            links = [];
+
+        for(let i = 0, l = tokens.length; i < l; i++) {
+
+            let token = tokens[i];
+
+            findDuplexLinks(token, links);
+
+        }
+
+        console.log(links);
+
+        return links;
+
+    }
+
     // path引用的note：callees
     // 引用path的note：callers
     createNote(name, path, callees, callers) {
-        if (!this._data.notes[name]) return;
-        this._modified = true;
+        if (this._data.notes[name]) return;
+        // this._modified = true;
         return this._data.notes[name] = { callers, callees, path };
     }
 
     deleteNote(noteName) {
         if (!this._data.notes[noteName]) return;
-        this._modified = true;
+        // this._modified = true;
         delete this._data.notes[noteName];
     }
 
@@ -215,6 +262,12 @@ class NoteBook {
 
         if (index < 0) note.callers.push(caller);
 
+    }
+
+    setCalleesOfNote(noteName, callees) {}
+
+    isNote(fsPath) {
+        return path.extname(fsPath) === '.md';
     }
 
 }

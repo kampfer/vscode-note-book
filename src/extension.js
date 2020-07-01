@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const NoteBook = require('./NoteBook');
 // const { debounce } = require('throttle-debounce');
-const duplexLInkPlugin = require('./markdown-it-duplex-link');
+const duplexLinkPlugin = require('./markdown-it-duplex-link');
 
 const extensionName = 'vscode-note-book';
 
@@ -51,37 +51,53 @@ function activate(context) {
 
     }
 
-    vscode.workspace.onDidChangeWorkspaceFolders(function () {
-        console.log('onDidChangeWorkspaceFolders');
-    });
+    // 注册事件
+    // https://code.visualstudio.com/api/references/vscode-api#workspace
+    vscode.workspace.onDidCreateFiles(function ({ files }) {
 
-    let mdState;
+        for(let file of files) {
 
-    /**
-     * 编辑note可能出现的几种情况：
-     * 1. 添加callee
-     *      1.1. 在note.callees中添加记录
-     *      1.2. 在callee.callers中添加记录
-     * 2. 修改callee
-     *      2.1. 删除旧的callee（情况1）
-     *      2.1. 添加新的callee（情况3）
-     * 3. 删除callee
-     *      3.1. 删除note.callees中的记录
-     *      3.2. 删除callee.caller中的记录
-     */
-    vscode.workspace.onDidSaveTextDocument(function (textDocument) {
+            if (!noteBook.isNote(file.fsPath)) continue;
 
-        let currentNoteName = path.basename(textDocument.fileName),
-            tokens = mdState.tokens,
-            duplexLinks = [];
+            let noteName = path.basename(file.fsPath);
 
-        for(let token of tokens) {
-
-            if (token._isDuplexLink) duplexLinks.push(`${token.content}.md`);
+            noteBook.createNote(noteName);
 
         }
 
-        noteBook.setDuplexLinksOfNote(currentNoteName, duplexLinks);
+    });
+
+    vscode.workspace.onDidDeleteFiles(function ({ files }) {
+
+        for(let file of files) {
+
+            if (!noteBook.isNote(file.fsPath)) continue;
+
+            let noteName = path.basename(file.fsPath);
+
+            noteBook.deleteNote(noteName);
+
+        }
+
+    });
+
+    vscode.workspace.onDidRenameFiles(function ({ files }) {
+
+        for(let file of files) {
+
+            if (!noteBook.isNote(file.fsPath)) continue;
+
+            let noteName = path.basename(file.fsPath);
+
+            // noteBook.deleteNote(noteName);
+
+        }
+
+    });
+
+    vscode.workspace.onDidSaveTextDocument(function (document) {
+
+        if (!noteBook.isNote(document)) return;
 
         noteBook.store();
 
@@ -93,8 +109,40 @@ function activate(context) {
         extendMarkdownIt(md) {
 
             return md.use(require('markdown-it-codepen'))
-                .use(duplexLInkPlugin());
-            
+                .use(duplexLinkPlugin)
+                .use(function (md) {
+
+                    // core.ruler列表的最后一条规则一定是最后被执行的
+                    // 可以在此处完成一些必须在文档被全部解析完之后执行的任务
+                    // 比如将更新当前文档的duplex links列表，或者加入codepen的embed.js
+                    md.core.ruler.push('note-book', function (state) {
+
+                        let links = noteBook.extractDuplexLinksFromMarkdownItState(state),
+                            noteName = path.basename(vscode.window.activeTextEditor.document.fileName),
+                            note = noteBook.getNote(noteName);
+
+                        if (!note) {
+
+                            note = noteBook.createNote(noteName, '', links);
+
+                        } else {
+
+                            note.callees = links;
+
+                        }
+
+                        for (let j = 0, k = note.callees.length; j < k; j++) {
+
+                            let callee = note.callees[j];
+
+                            noteBook.addCallerOfNote(callee, noteName);
+
+                        }
+
+                    });
+
+                });
+
         }
     };
 
