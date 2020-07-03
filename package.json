@@ -16,6 +16,7 @@
     ],
     "main": "./src/extension.js",
     "contributes": {
+        "markdown.previewScripts": ["./src/renderer.js"],
         "markdown.markdownItPlugins": true,
         "commands": [
             {

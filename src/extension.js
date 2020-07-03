@@ -17,10 +17,14 @@ function activate(context) {
 
     const noteBookStoragePath = path.join(cwd.uri.fsPath, '.note_book');
 
-    if (!fs.existsSync(noteBookStoragePath)) {
-        vscode.window.showInformationMessage(`${noteBookStoragePath}不存在，请执行init命令新建笔记本！`);
-    }
+    // if (!fs.existsSync(noteBookStoragePath)) {
+    //     vscode.window.showInformationMessage(`${noteBookStoragePath}不存在，请执行init命令新建笔记本！`);
+    // }
 
+    // TODO:
+    // 当前工作目录有.note_book文件，那么它是一个笔记本
+    // 如果要把当前工作目录设置为笔记本，需要手动执行init命令
+    // 即没有.note_book文件也没有执行init命令，那么后续笔记本的相关操作应全部不生效
     const noteBook = new NoteBook({ localStoragePath: noteBookStoragePath });
 
     const commands = [
@@ -65,6 +69,8 @@ function activate(context) {
 
         }
 
+        noteBook.store();
+
     });
 
     vscode.workspace.onDidDeleteFiles(function ({ files }) {
@@ -78,6 +84,8 @@ function activate(context) {
             noteBook.deleteNote(noteName);
 
         }
+
+        noteBook.store();
 
     });
 
@@ -93,11 +101,13 @@ function activate(context) {
 
         }
 
+        noteBook.store();
+
     });
 
     vscode.workspace.onDidSaveTextDocument(function (document) {
 
-        if (!noteBook.isNote(document)) return;
+        if (document.languageId !== 'markdown') return;
 
         noteBook.store();
 
@@ -121,15 +131,7 @@ function activate(context) {
                             noteName = path.basename(vscode.window.activeTextEditor.document.fileName),
                             note = noteBook.getNote(noteName);
 
-                        if (!note) {
-
-                            note = noteBook.createNote(noteName, '', links);
-
-                        } else {
-
-                            note.callees = links;
-
-                        }
+                        note.callees = links;
 
                         for (let j = 0, k = note.callees.length; j < k; j++) {
 

@@ -1,3 +1,5 @@
 [[[pen slug-hash="JjGEJGL" pen-title="WebGL&nbsp;Text(HTML)" user="kampfer"]]]
 
-[[1]]
+[[foo]]
+
+[[bar]]
