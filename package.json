@@ -10,37 +10,22 @@
         "Other"
     ],
     "activationEvents": [
-        "onView:note-book",
-        "onCommand:vscode-note-book.init",
-        "onCommand:vscode-note-book.scanTags"
+        "onCommand:vscode-note-book.scan",
+        "onCommand:vscode-note-book.preview"
     ],
     "main": "./src/extension.js",
     "contributes": {
-        "markdown.previewScripts": ["./src/renderer.js"],
+        "markdown.previewScripts": [
+            "./src/data.js",
+            "./src/renderer.js"
+        ],
         "markdown.markdownItPlugins": true,
         "commands": [
             {
-                "command": "vscode-note-book.init",
-                "title": "init"
-            },
-            {
                 "command": "vscode-note-book.scan",
-                "title": "scan"
+                "title": "vscode-note-book.scan"
             }
-        ],
-        "views": {
-            "explorer": [
-                {
-                    "id": "note-book",
-                    "name": "标签"
-                }
-            ]
-        }
-    },
-    "scripts": {
-        "lint": "eslint .",
-        "pretest": "npm run lint",
-        "test": "node ./test/runTest.js"
+        ]
     },
     "devDependencies": {
         "@types/vscode": "^1.45.0",

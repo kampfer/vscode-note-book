@@ -1,1 +1,0 @@
-{"notes":{"test.md":{"callees":["foo.md","bar.md"],"path":""},"foo.md":{"callers":["test.md"],"callees":[]}}}
