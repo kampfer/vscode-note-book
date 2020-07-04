@@ -47,25 +47,19 @@ class NoteBook {
         md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin);
         this.md = md;
 
-        // this._modified = false;
-
-        let data = null;
-
         try {
 
-            let content = fs.readFileSync(this.localStoragePath);
+            let { data } = require(this.localStoragePath);
 
-            data = JSON.parse(content.toString());
+            this._data = data;
 
         } catch (e) {
 
-            data = {
+            this._data = {
                 notes: {}
             };
 
         }
-
-        this._data = data;
 
     }
 
@@ -76,11 +70,7 @@ class NoteBook {
 
     store(force) {
 
-        // if (!this._modified && !force) return;
-
-        // this._modified = false;
-
-        fs.writeFileSync(this.localStoragePath, `const data = ${JSON.stringify(this._data)}`);
+        fs.writeFileSync(this.localStoragePath, `(function (exports) { exports.data = ${JSON.stringify(this._data)};})(typeof exports !== 'undefined' ? exports : window);`);
 
         console.log(`写入${this.localStoragePath}`);
 
