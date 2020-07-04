@@ -80,7 +80,7 @@ class NoteBook {
 
         // this._modified = false;
 
-        fs.writeFileSync(this.localStoragePath, JSON.stringify(this._data));
+        fs.writeFileSync(this.localStoragePath, `const data = ${JSON.stringify(this._data)}`);
 
         console.log(`写入${this.localStoragePath}`);
 

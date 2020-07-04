@@ -1,5 +1,6 @@
 const pathLib = require('path');
 const fs = require('fs');
+const vscode = require('vscode');
 
 exports.walk = function walk(path, callback, ignoreHidden = false) {
 
@@ -52,5 +53,23 @@ exports.walk = function walk(path, callback, ignoreHidden = false) {
         }
 
     }
+
+}
+
+exports.getCurrentNote = function () {
+
+    if (vscode.window.activeTextEditor) {
+
+        return vscode.window.activeTextEditor.document;
+
+    }
+
+    return null;
+
+};
+
+exports.getNoteName = function (document) {
+
+    return pathLib.basename(document.fileName);
 
 }

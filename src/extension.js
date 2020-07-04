@@ -2,44 +2,28 @@
 
 const vscode = require('vscode');
 const path = require('path');
-const fs = require('fs');
+// const fs = require('fs');
 const NoteBook = require('./NoteBook');
-// const { debounce } = require('throttle-debounce');
 const duplexLinkPlugin = require('./markdown-it-duplex-link');
+const utils = require('./utils');
 
 const extensionName = 'vscode-note-book';
 
 function activate(context) {
 
+    // TODO: 通过配置激活此插件。默认配置应该是false。
+    if (false) return;
+
     const cwd = vscode.workspace.workspaceFolders[0];
 
-    if (!cwd) return;
-
-    const noteBookStoragePath = path.join(cwd.uri.fsPath, '.note_book');
-
-    // if (!fs.existsSync(noteBookStoragePath)) {
-    //     vscode.window.showInformationMessage(`${noteBookStoragePath}不存在，请执行init命令新建笔记本！`);
-    // }
-
-    // TODO:
-    // 当前工作目录有.note_book文件，那么它是一个笔记本
-    // 如果要把当前工作目录设置为笔记本，需要手动执行init命令
-    // 即没有.note_book文件也没有执行init命令，那么后续笔记本的相关操作应全部不生效
-    const noteBook = new NoteBook({ localStoragePath: noteBookStoragePath });
+    const noteBook = new NoteBook({ localStoragePath: path.join(__dirname, './data.js') });
 
     const commands = [
-        {
-            id: `${extensionName}.init`,
-            fn: function () {
-                noteBook.scan(cwd.uri.fsPath);
-                noteBook.store(true);
-                vscode.window.showInformationMessage(`笔记本初始化完成！`);
-            }
-        },
         {
             id: `${extensionName}.scan`,
             fn: function () {
                 noteBook.scan(cwd.uri.fsPath);
+                noteBook.store();
                 vscode.window.showInformationMessage(`扫描${cwd.uri.fsPath}完成！`);
             }
         }
@@ -128,8 +112,11 @@ function activate(context) {
                     md.core.ruler.push('note-book', function (state) {
 
                         let links = noteBook.extractDuplexLinksFromMarkdownItState(state),
-                            noteName = path.basename(vscode.window.activeTextEditor.document.fileName),
+                            doc = utils.getCurrentNote(),
+                            noteName = doc ? utils.getNoteName(doc) : undefined,
                             note = noteBook.getNote(noteName);
+
+                        if (!note) return;
 
                         note.callees = links;
 
