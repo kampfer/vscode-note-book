@@ -2,7 +2,6 @@
 
 const vscode = require('vscode');
 const path = require('path');
-// const fs = require('fs');
 const NoteBook = require('./NoteBook');
 const duplexLinkPlugin = require('./markdown-it-duplex-link');
 const utils = require('./utils');
@@ -45,7 +44,7 @@ function activate(context) {
 
         for(let file of files) {
 
-            if (!noteBook.isNote(file.fsPath)) continue;
+            if (!utils.isNote(file.fsPath)) continue;
 
             let noteName = path.basename(file.fsPath);
 
@@ -61,11 +60,15 @@ function activate(context) {
 
         for(let file of files) {
 
-            if (!noteBook.isNote(file.fsPath)) continue;
+            if (!utils.isNote(file.fsPath)) continue;
 
             let noteName = path.basename(file.fsPath);
 
-            // noteBook.deleteNote(noteName);
+            noteBook.deleteNote(noteName);
+
+            let links = noteBook.extractDuplexLinksFromFileContent(file.toString());
+
+            noteBook.setNote(noteName, file.fsPath, links);
 
         }
 

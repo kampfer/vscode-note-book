@@ -21,17 +21,23 @@ class NoteBook {
 
         this.md = md;
 
+        this._data = null;
+
+        this.loadData(this.localStoragePath);
+
+    }
+
+    loadData(dataPath) {
+
         try {
 
-            let { data } = require(this.localStoragePath);
+            let { data } = require(dataPath);
 
             this._data = data;
 
         } catch (e) {
 
-            this._data = {
-                notes: {}
-            };
+            if (!this._data) this._data = { notes: {} };
 
         }
 
@@ -42,7 +48,7 @@ class NoteBook {
         this._data = { notes: {} };
     }
 
-    store(force) {
+    store() {
 
         fs.writeFileSync(this.localStoragePath, `(function (exports) { exports.data = ${JSON.stringify(this._data)};})(typeof exports !== 'undefined' ? exports : window);`);
 
@@ -149,8 +155,17 @@ class NoteBook {
     }
 
     deleteNote(noteName) {
-        if (!this._data.notes[noteName]) return;
-        // this._modified = true;
+
+        let note = this.getNote(noteName);
+
+        if (!note) return;
+
+        if (Array.isArray(note.downLinks)) {
+
+            note.downLinks.forEach(link => this.deleteLinkOfNote(link, NoteBook.UP_LINK, noteName));
+
+        }
+
         delete this._data.notes[noteName];
     }
 
