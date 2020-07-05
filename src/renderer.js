@@ -37,7 +37,7 @@ window.addEventListener('load', function () {
 
     let note = getNote(getCurrentNoteName());
 
-    if (note && note.upLinks) {
+    if (note && note.upLinks && note.upLinks.length > 0) {
 
         let rootElem = document.createElement('div');
 

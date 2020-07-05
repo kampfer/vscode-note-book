@@ -160,7 +160,7 @@ class NoteBook {
 
     // 比较两个列表，返回修改操作集合。
     // 通过将返回结果应用在list1上可以获得list2。
-    diffList(list1, list2) {
+    diffList(list1 = [], list2 = []) {
 
         let diffs = [];
 
@@ -208,10 +208,12 @@ class NoteBook {
                 if (diff.type === 'add') {
 
                     this.addLinkToNote(noteName, NoteBook.DOWN_LINK, diff.value);
+                    this.addLinkToNote(diff.value, NoteBook.UP_LINK, noteName);
 
                 } else if (diff.type === 'delete') {
 
                     this.deleteLinkOfNote(noteName, NoteBook.DOWN_LINK, diff.index);
+                    this.deleteLinkOfNote(diff.value, NoteBook.UP_LINK, noteName);
 
                 }
 
@@ -230,11 +232,14 @@ class NoteBook {
 
                 if (diff.type === 'add') {
 
-                    this.addUpLinkToNote(noteName, NoteBook.upLinks, diff.value);
+                    this.addUpLinkToNote(noteName, NoteBook.UP_LINK, diff.value);
+                    this.addUpLinkToNote(diff.value, NoteBook.DOWN_LINK, noteName);
+
 
                 } else if (diff.type === 'delete') {
 
-                    this.deleteUpLinkOfNote(noteName, NoteBook.upLinks, diff.index);
+                    this.deleteUpLinkOfNote(noteName, NoteBook.UP_LINK, diff.index);
+                    this.deleteUpLinkOfNote(diff.value, NoteBook.DOWN_LINK, noteName);
 
                 }
 
