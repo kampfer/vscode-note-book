@@ -5,34 +5,6 @@ const { debounce } = require('throttle-debounce');
 const MarkdownIt = require('markdown-it');
 const markdownItDuplexLinkPlugin = require('./markdown-it-duplex-link');
 
-function findDuplexLinks(token, arr) {
-
-    if (token.type === 'inline' && token.children) {
-
-        for(let i = 0, l = token.children.length; i < l; i++) {
-
-            let child = token.children[i];
-
-            if (child.isDuplexLink) {
-
-                arr.push(`${child.content}.md`);
-
-            } else {
-
-                findDuplexLinks(child, arr);
-
-            }
-
-        }
-
-    } else if (token.isDuplexLink) {
-
-        arr.push(`${token.content}.md`);
-
-    }
-
-}
-
 class NoteBook {
 
     constructor({
@@ -44,7 +16,9 @@ class NoteBook {
         this.store = debounce(1000, this.store);
 
         let md = new MarkdownIt();
-        md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin);
+
+        md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin(this));
+
         this.md = md;
 
         try {
@@ -99,7 +73,7 @@ class NoteBook {
                 let content = fs.readFileSync(file).toString(),
                     links = this.extractDuplexLinksFromFileContent(content);
 
-                note.callees = links;
+                if (links) note.downLinks = links;
 
             }
 
@@ -112,13 +86,13 @@ class NoteBook {
             let noteName = notes[i],
                 note = this.getNote(noteName);
 
-            if (!note.callees) continue;
+            if (!note.downLinks) continue;
 
-            for (let j = 0, k = note.callees.length; j < k; j++) {
+            for (let j = 0, k = note.downLinks.length; j < k; j++) {
 
-                let callee = note.callees[j];
+                let callee = note.downLinks[j];
 
-                this.addCallerOfNote(callee, noteName);
+                this.addLinkToNote(callee, NoteBook.UP_LINK, noteName);
 
             }
 
@@ -165,31 +139,13 @@ class NoteBook {
 
     }
 
-    extractDuplexLinksFromMarkdownItState(state) {
-
-        let tokens = state.tokens,
-            links = [];
-
-        for(let i = 0, l = tokens.length; i < l; i++) {
-
-            let token = tokens[i];
-
-            findDuplexLinks(token, links);
-
-        }
-
-        console.log(links);
-
-        return links;
-
-    }
-
-    // path引用的note：callees
-    // 引用path的note：callers
-    createNote(name, path, callees, callers) {
+    // uplinks：引用当前note的note的列表
+    // downlinks：当前note引用的note的列表
+    // 根据downlinks设置uplinks
+    createNote(name, path, downLinks, upLinks) {
         if (this._data.notes[name]) return;
         // this._modified = true;
-        return this._data.notes[name] = { callers, callees, path };
+        return this._data.notes[name] = { upLinks, downLinks, path };
     }
 
     deleteNote(noteName) {
@@ -202,64 +158,163 @@ class NoteBook {
         return this._data.notes[noteName];
     }
 
-    deleteCalleeOfNote(noteName, callee) {
+    // 比较两个列表，返回修改操作集合。
+    // 通过将返回结果应用在list1上可以获得list2。
+    diffList(list1, list2) {
 
-        let note = this.getNote(noteName);
+        let diffs = [];
 
-        if (!note || !note.callees) return;
+        for (let i = 0, l = list1.length; i < l; i++) {
 
-        let index = note.callees.indexOf(callee);
+            if (list2.indexOf(list1[i]) < 0) {
 
-        if (index >= 0) note.callees.splice(index, 1);
+                diffs.push({ type: 'delete', index: i, value: list1[i] });
+
+            }
+
+        }
+
+        for (let i = 0, l = list2.length; i < l; i++) {
+
+            if (list1.indexOf(list2[i]) < 0) {
+
+                diffs.push({ type: 'add', index: i, value: list2[i] });
+
+            }
+
+        }
+
+        return diffs;
 
     }
 
-    addCalleeOfNote(noteName, callee) {
+    setNote(noteName, path, downLinks, upLinks) {
+
+        let note = this.getNote(noteName);
+
+        if (!note) note = this.createNote(noteName, path, downLinks, upLinks);
+
+        if (note.path !== path) note.path = path;
+
+        if (Array.isArray(downLinks)) {
+
+            let oldDownLinks = note.downLinks,
+                diffs = this.diffList(oldDownLinks, downLinks);
+
+            note.downLinks = downLinks;
+
+            diffs.forEach(diff => {
+
+                if (diff.type === 'add') {
+
+                    this.addLinkToNote(noteName, NoteBook.DOWN_LINK, diff.value);
+
+                } else if (diff.type === 'delete') {
+
+                    this.deleteLinkOfNote(noteName, NoteBook.DOWN_LINK, diff.index);
+
+                }
+
+            });
+
+        }
+
+        if (Array.isArray(upLinks)) {
+
+            let oldUpLinks = note.upLinks,
+                diffs = this.diffList(oldUpLinks, upLinks);
+
+            note.upLinks = upLinks;
+
+            diffs.forEach(diff => {
+
+                if (diff.type === 'add') {
+
+                    this.addUpLinkToNote(noteName, NoteBook.upLinks, diff.value);
+
+                } else if (diff.type === 'delete') {
+
+                    this.deleteUpLinkOfNote(noteName, NoteBook.upLinks, diff.index);
+
+                }
+
+            });
+
+        }
+
+    }
+
+    deleteLinkOfNote(noteName, type, link) {
 
         let note = this.getNote(noteName);
 
         if (!note) return;
 
-        if (!note.callees) note.callees = [];
+        let links;
 
-        let index = note.callees.indexOf(callee);
+        if (type === NoteBook.DOWN_LINK) {
 
-        if (index < 0) note.callees.push(callee);
+            links = note.downLinks;
+
+        } else if (type === NoteBook.UP_LINK) {
+
+            links = note.upLinks;
+
+        }
+
+        if (!links) return;
+
+        let index = link;
+
+        if (typeof index !== 'number') index = links.indexOf(link);
+
+        if (index >= 0) links.splice(index, 1);
 
     }
 
-    deleteCallerOfNote(noteName, caller) {
-
-        let note = this.getNote(noteName);
-
-        if (!note || !note.callers) return;
-
-        let index = note.callers.indexOf(caller);
-
-        if (index >= 0) note.callers.splice(index, 1);
-
-    }
-
-    addCallerOfNote(noteName, caller) {
+    addLinkToNote(noteName, type, link) {
 
         let note = this.getNote(noteName);
 
         if (!note) return;
 
-        if (!note.callers) note.callers = [];
+        let links;
 
-        let index = note.callers.indexOf(caller);
+        if (type === NoteBook.DOWN_LINK) {
 
-        if (index < 0) note.callers.push(caller);
+            links = note.downLinks;
 
-    }
+        } else if (type === NoteBook.UP_LINK) {
 
-    setCalleesOfNote(noteName, callees) {}
+            links = note.upLinks;
 
-    isNote(fsPath) {
-        return path.extname(fsPath) === '.md';
+        }
+
+        if (!links) {
+
+            links = [];
+
+            if (type === NoteBook.DOWN_LINK) {
+
+                note.downLinks = links;
+
+            } else if (type === NoteBook.UP_LINK) {
+
+                note.upLinks = links;
+
+            }
+
+        }
+
+        let index = links.indexOf(link);
+
+        if (index < 0) links.push(link);
+
     }
 
 }
+
+NoteBook.DOWN_LINK = 'downLink';
+NoteBook.UP_LINK = 'upLink';
 
 module.exports = NoteBook;

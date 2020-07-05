@@ -56,7 +56,7 @@ exports.walk = function walk(path, callback, ignoreHidden = false) {
 
 }
 
-exports.getCurrentNote = function () {
+exports.getCurrentDocument = function () {
 
     if (vscode.window.activeTextEditor) {
 

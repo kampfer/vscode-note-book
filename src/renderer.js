@@ -37,13 +37,13 @@ window.addEventListener('load', function () {
 
     let note = getNote(getCurrentNoteName());
 
-    if (note && note.callers) {
+    if (note && note.upLinks) {
 
         let rootElem = document.createElement('div');
 
         rootElem.innerHTML = `
-            <h1>被${note.callers.length}篇笔记引用：</h1>
-            <dl>${note.callers.map(caller => `<dt><a href="${caller}">${caller}</a></dt>`).join('')}</dl>
+            <h1>被${note.upLinks.length}篇笔记引用：</h1>
+            <ol>${note.upLinks.map(caller => `<li><a href="${caller}">${caller}</a></li>`).join('')}</dl>
         `;
 
         document.body.appendChild(rootElem);

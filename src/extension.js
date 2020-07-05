@@ -93,6 +93,11 @@ function activate(context) {
 
         if (document.languageId !== 'markdown') return;
 
+        let noteName = utils.getNoteName(document),
+            links = noteBook.extractDuplexLinksFromFileContent(document.getText());
+
+        noteBook.setNote(noteName, document.fileName, links);
+
         noteBook.store();
 
         console.log('onDidSaveTextDocument');
@@ -103,34 +108,7 @@ function activate(context) {
         extendMarkdownIt(md) {
 
             return md.use(require('markdown-it-codepen'))
-                .use(duplexLinkPlugin)
-                .use(function (md) {
-
-                    // core.ruler列表的最后一条规则一定是最后被执行的
-                    // 可以在此处完成一些必须在文档被全部解析完之后执行的任务
-                    // 比如将更新当前文档的duplex links列表，或者加入codepen的embed.js
-                    md.core.ruler.push('note-book', function (state) {
-
-                        let links = noteBook.extractDuplexLinksFromMarkdownItState(state),
-                            doc = utils.getCurrentNote(),
-                            noteName = doc ? utils.getNoteName(doc) : undefined,
-                            note = noteBook.getNote(noteName);
-
-                        if (!note) return;
-
-                        note.callees = links;
-
-                        for (let j = 0, k = note.callees.length; j < k; j++) {
-
-                            let callee = note.callees[j];
-
-                            noteBook.addCallerOfNote(callee, noteName);
-
-                        }
-
-                    });
-
-                });
+                .use(duplexLinkPlugin(noteBook, true));
 
         }
     };
