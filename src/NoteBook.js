@@ -209,7 +209,8 @@ class NoteBook {
 
         let note = this.getNote(noteName);
 
-        if (!note) note = this.createNote(noteName, path, downLinks, upLinks);
+        // 不传downlinks和uplinks参数，避免之后的diffs结果为空
+        if (!note) note = this.createNote(noteName, path);
 
         if (note.path !== path) note.path = path;
 
@@ -249,14 +250,14 @@ class NoteBook {
 
                 if (diff.type === 'add') {
 
-                    this.addUpLinkToNote(noteName, NoteBook.UP_LINK, diff.value);
-                    this.addUpLinkToNote(diff.value, NoteBook.DOWN_LINK, noteName);
+                    this.addLinkToNote(noteName, NoteBook.UP_LINK, diff.value);
+                    this.addLinkToNote(diff.value, NoteBook.DOWN_LINK, noteName);
 
 
                 } else if (diff.type === 'delete') {
 
-                    this.deleteUpLinkOfNote(noteName, NoteBook.UP_LINK, diff.index);
-                    this.deleteUpLinkOfNote(diff.value, NoteBook.DOWN_LINK, noteName);
+                    this.deleteLinkOfNote(noteName, NoteBook.UP_LINK, diff.index);
+                    this.deleteLinkOfNote(diff.value, NoteBook.DOWN_LINK, noteName);
 
                 }
 
