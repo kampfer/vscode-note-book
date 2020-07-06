@@ -4,7 +4,6 @@ const vscode = require('vscode');
 const path = require('path');
 const NoteBook = require('./NoteBook');
 const duplexLinkPlugin = require('./markdown-it-duplex-link');
-const utils = require('./utils');
 
 const extensionName = 'vscode-note-book';
 
@@ -44,7 +43,7 @@ function activate(context) {
 
         for(let file of files) {
 
-            if (!utils.isNote(file.fsPath)) continue;
+            if (!isNote(file.fsPath)) continue;
 
             let noteName = path.basename(file.fsPath);
 
@@ -60,7 +59,7 @@ function activate(context) {
 
         for(let file of files) {
 
-            if (!utils.isNote(file.fsPath)) continue;
+            if (!isNote(file.fsPath)) continue;
 
             let noteName = path.basename(file.fsPath);
 
@@ -80,7 +79,7 @@ function activate(context) {
 
         if (document.languageId !== 'markdown') return;
 
-        let noteName = utils.getNoteName(document),
+        let noteName = getNoteName(document),
             links = noteBook.extractDuplexLinksFromFileContent(document.getText());
 
         noteBook.setNote(noteName, document.fileName, links);
@@ -99,6 +98,30 @@ function activate(context) {
 
         }
     };
+
+}
+
+const getCurrentDocument = function () {
+
+    if (vscode.window.activeTextEditor) {
+
+        return vscode.window.activeTextEditor.document;
+
+    }
+
+    return null;
+
+};
+
+const getNoteName = function (document) {
+
+    return pathLib.basename(document.fileName);
+
+}
+
+const isNote = function (fileName) {
+
+    return pathLib.extname(fileName) === '.md';
 
 }
 

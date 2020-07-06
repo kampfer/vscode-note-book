@@ -9,7 +9,7 @@ class NoteBook {
 
     constructor({
         localStoragePath
-    }) {
+    } = {}) {
 
         this.localStoragePath = localStoragePath;
 
@@ -37,9 +37,11 @@ class NoteBook {
 
         } catch (e) {
 
-            if (!this._data) this._data = { notes: {} };
+            // do nothing
 
         }
+
+        if (!this._data) this._data = { notes: {} };
 
     }
 
