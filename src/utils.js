@@ -54,3 +54,15 @@ exports.walk = function walk(path, callback, ignoreHidden = false) {
     }
 
 }
+
+exports.getNoteName = function (document) {
+
+    return pathLib.basename(document.fileName);
+
+}
+
+exports.isNote = function (fileName) {
+
+    return pathLib.extname(fileName) === '.md';
+
+}

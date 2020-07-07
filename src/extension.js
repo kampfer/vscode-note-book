@@ -4,6 +4,8 @@ const vscode = require('vscode');
 const path = require('path');
 const NoteBook = require('./NoteBook');
 const duplexLinkPlugin = require('./markdown-it-duplex-link');
+const utils = require('./utils');
+const Previewer = require('./Previewer');
 
 const extensionName = 'vscode-note-book';
 
@@ -16,6 +18,8 @@ function activate(context) {
 
     const noteBook = new NoteBook({ localStoragePath: path.join(__dirname, './data.js') });
 
+    const previewer = new Previewer(noteBook);
+
     const commands = [
         {
             id: `${extensionName}.scan`,
@@ -23,6 +27,13 @@ function activate(context) {
                 noteBook.scan(cwd.uri.fsPath);
                 noteBook.store();
                 vscode.window.showInformationMessage(`扫描${cwd.uri.fsPath}完成！`);
+            }
+        },
+        {
+            id: `${extensionName}.preview`,
+            fn: function () {
+                let doc = getCurrentDocument();
+                previewer.open(doc);
             }
         }
     ];
@@ -43,7 +54,7 @@ function activate(context) {
 
         for(let file of files) {
 
-            if (!isNote(file.fsPath)) continue;
+            if (!utils.isNote(file.fsPath)) continue;
 
             let noteName = path.basename(file.fsPath);
 
@@ -59,7 +70,7 @@ function activate(context) {
 
         for(let file of files) {
 
-            if (!isNote(file.fsPath)) continue;
+            if (!utils.isNote(file.fsPath)) continue;
 
             let noteName = path.basename(file.fsPath);
 
@@ -79,7 +90,7 @@ function activate(context) {
 
         if (document.languageId !== 'markdown') return;
 
-        let noteName = getNoteName(document),
+        let noteName = utils.getNoteName(document),
             links = noteBook.extractDuplexLinksFromFileContent(document.getText());
 
         noteBook.setNote(noteName, document.fileName, links);
@@ -112,18 +123,6 @@ const getCurrentDocument = function () {
     return null;
 
 };
-
-const getNoteName = function (document) {
-
-    return pathLib.basename(document.fileName);
-
-}
-
-const isNote = function (fileName) {
-
-    return pathLib.extname(fileName) === '.md';
-
-}
 
 // this method is called when your extension is deactivated
 function deactivate() { }

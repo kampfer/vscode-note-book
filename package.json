@@ -24,6 +24,10 @@
             {
                 "command": "vscode-note-book.scan",
                 "title": "vscode-note-book.scan"
+            },
+            {
+                "command": "vscode-note-book.preview",
+                "title": "vscode-note-book.preview"
             }
         ]
     },

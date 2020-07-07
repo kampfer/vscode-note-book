@@ -111,7 +111,7 @@ class NoteBook {
     extractDuplexLinksFromFileContent(content) {
 
         let tokens = this.md.parse(content, {}),
-            links;
+            links = [];
 
         for (let i = 0, l = tokens.length; i < l; i++) {
 
@@ -128,8 +128,6 @@ class NoteBook {
                         let child = children[j];
 
                         if (child.isDuplexLink) {
-
-                            if (!links) links = [];
 
                             links.push(`${child.content}.md`);
 
