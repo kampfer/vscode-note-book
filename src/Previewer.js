@@ -52,7 +52,4 @@ class Previewer {
 
 Previewer.webviewType = 'vscode-note-book-preview';
 
-Previewer.webviewContentTpl =
-`<html`
-
 module.exports = Previewer;

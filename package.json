@@ -28,6 +28,10 @@
             {
                 "command": "vscode-note-book.preview",
                 "title": "vscode-note-book.preview"
+            },
+            {
+                "command": "vscode-note-book.viewNoteBook",
+                "title": "vscode-note-book.viewNoteBook"
             }
         ]
     },

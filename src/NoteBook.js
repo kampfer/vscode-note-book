@@ -173,6 +173,10 @@ class NoteBook {
         return this._data.notes[noteName];
     }
 
+    getAllNotes() {
+        return this._data.notes;
+    }
+
     // 比较两个列表，返回修改操作集合。
     // 通过将返回结果应用在list1上可以获得list2。
     diffList(list1 = [], list2 = []) {
@@ -330,6 +334,40 @@ class NoteBook {
         let index = links.indexOf(link);
 
         if (index < 0) links.push(link);
+
+    }
+
+    toJSON() {}
+
+    toNetworkedData() {
+
+        const notes = this._data.notes;
+        const links = [];
+        const nodes = [];
+
+        const fixName = name => name.substr(0, name.length - 3);
+
+        Object.entries(notes).map(([name, note]) => {
+
+            name = fixName(name);
+
+            nodes.push({ id: name });
+
+            if (note.upLinks) {
+
+                note.upLinks.forEach(link => links.push({ source: fixName(link), target: name, type: 'upLink' }));
+
+            }
+
+            if (note.downLinks) {
+
+                note.downLinks.forEach(link => links.push({ source: name, target: fixName(link), type: 'downLink' }));
+
+            }
+
+        });
+
+        return { links, nodes };
 
     }
 
