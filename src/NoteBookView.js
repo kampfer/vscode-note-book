@@ -65,7 +65,7 @@ class NoteBookView {
             vscode.Uri.file(
                 path.join(this.extensionContext.extensionPath, 'src', 'noteBookRenderer.js')
             ),
-        ].map(src => `<script async src="${src}" charset="UTF-8"></script>`).join('\n');
+        ].map(src => `<script src="${panel.webview.asWebviewUri(src)}" charset="UTF-8"></script>`).join('\n');
 
     }
 
