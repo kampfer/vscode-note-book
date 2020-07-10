@@ -37,7 +37,8 @@ function linkArc(d) {
 
 const types = ['downLink', 'upLink'];
 const color = d3.scaleOrdinal(types, d3.schemeCategory10);
-const height = 600
+const height = window.innerHeight;
+const width = window.innerWidth;
 
 window.addEventListener('message', event => {
 
@@ -96,23 +97,21 @@ window.addEventListener('message', event => {
     node.append("text")
         .attr("x", 8)
         .attr("y", "0.31em")
-        .text(d => d.id)
-        .clone(true).lower()
-        .attr("fill", "none")
-        .attr("stroke", "white")
-        .attr("stroke-width", 3);
+        .text(d => d.id);
+        // .clone(true).lower()
+        // .attr("fill", "none")
+        // .attr("stroke", "white")
+        // .attr("stroke-width", 3);
 
     simulation.on("tick", () => {
         link.attr("d", linkArc);
         node.attr("transform", d => `translate(${d.x},${d.y})`);
     });
 
-    // invalidation.then(() => simulation.stop());
-
-    return svg.node();
+    document.body.appendChild(svg.node());
 
 });
 
 vscode.postMessage({
     command: 'getGraphDataOfNoteBook'
-})
+});
