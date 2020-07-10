@@ -17,7 +17,7 @@ class NoteBook {
 
         let md = new MarkdownIt();
 
-        md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin(this));
+        md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin(this, true));
 
         this.md = md;
 
@@ -58,11 +58,13 @@ class NoteBook {
 
     }
 
+    // 忽略隐藏文件夹（.开头的文件夹）
+    // 忽略不存在的note（引用不存在的note并不会生成link）
     scan(noteBookDir) {
 
         this.reset();
 
-        // 忽略.开头的文件夹
+        // 遍历工作目录，找出所有note并创建空记录（此时不提取link，因为无法正确判断note是否存在）
         walk(noteBookDir, (roots, dirs, files) => {
 
             if (!files) return;
@@ -73,15 +75,9 @@ class NoteBook {
 
                 if (path.extname(file) !== '.md') continue;
 
-                let noteName = path.basename(file),
-                    note = this.getNote(noteName);
+                let noteName = path.basename(file);
 
-                if (!note) note = this.createNote(noteName);
-
-                let content = fs.readFileSync(file).toString(),
-                    links = this.extractDuplexLinksFromFileContent(content);
-
-                if (links) note.downLinks = links;
+                this.createNote(noteName, file);
 
             }
 
@@ -89,20 +85,15 @@ class NoteBook {
 
         let notes = Object.keys(this._data.notes);
 
+        // 提取link
         for (let i = 0, l = notes.length; i < l; i++) {
 
             let noteName = notes[i],
-                note = this.getNote(noteName);
+                note = this.getNote(noteName),
+                content = fs.readFileSync(note.path).toString(),
+                links = this.extractDuplexLinksFromFileContent(content);
 
-            if (!note.downLinks) continue;
-
-            for (let j = 0, k = note.downLinks.length; j < k; j++) {
-
-                let callee = note.downLinks[j];
-
-                this.addLinkToNote(callee, NoteBook.UP_LINK, noteName);
-
-            }
+            this.setNote(noteName, note.path, links);
 
         }
 
@@ -352,12 +343,6 @@ class NoteBook {
             name = fixName(name);
 
             nodes.push({ id: name });
-
-            if (note.upLinks) {
-
-                note.upLinks.forEach(link => links.push({ source: fixName(link), target: name, type: 'upLink' }));
-
-            }
 
             if (note.downLinks) {
 
