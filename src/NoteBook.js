@@ -5,6 +5,20 @@ const { debounce } = require('throttle-debounce');
 const MarkdownIt = require('markdown-it');
 const markdownItDuplexLinkPlugin = require('./markdown-it-duplex-link');
 
+function getIndexOfLink(list, link) {
+
+    let target = typeof link === 'string' ? link : link.target;
+
+    for(let i = 0, l = list.length; i < l; i++) {
+
+        if (list[i].target === target) return i;
+
+    }
+
+    return -1;
+
+}
+
 class NoteBook {
 
     constructor({
@@ -99,6 +113,7 @@ class NoteBook {
 
     }
 
+    // return [{ target, context }, ...]
     extractDuplexLinksFromFileContent(content) {
 
         let tokens = this.md.parse(content, {}),
@@ -120,7 +135,10 @@ class NoteBook {
 
                         if (child.isDuplexLink) {
 
-                            links.push(`${child.content}.md`);
+                            links.push({
+                                target: `${child.content}.md`,
+                                context: token.content
+                            })
 
                         }
 
@@ -153,7 +171,7 @@ class NoteBook {
 
         if (Array.isArray(note.downLinks)) {
 
-            note.downLinks.forEach(link => this.deleteLinkOfNote(link, NoteBook.UP_LINK, noteName));
+            note.downLinks.forEach(link => this.deleteLinkOfNote(link.target, NoteBook.UP_LINK, noteName));
 
         }
 
@@ -176,7 +194,7 @@ class NoteBook {
 
         for (let i = 0, l = list1.length; i < l; i++) {
 
-            if (list2.indexOf(list1[i]) < 0) {
+            if (getIndexOfLink(list2, list1[i]) < 0) {
 
                 diffs.push({ type: 'delete', index: i, value: list1[i] });
 
@@ -186,7 +204,7 @@ class NoteBook {
 
         for (let i = 0, l = list2.length; i < l; i++) {
 
-            if (list1.indexOf(list2[i]) < 0) {
+            if (getIndexOfLink(list1, list2[i]) < 0) {
 
                 diffs.push({ type: 'add', index: i, value: list2[i] });
 
@@ -282,7 +300,7 @@ class NoteBook {
 
         let index = link;
 
-        if (typeof index !== 'number') index = links.indexOf(link);
+        if (typeof index !== 'number') index = getIndexOfLink(links, link);
 
         if (index >= 0) links.splice(index, 1);
 
@@ -322,7 +340,9 @@ class NoteBook {
 
         }
 
-        let index = links.indexOf(link);
+        let index = getIndexOfLink(links, link);
+
+        if (typeof link === 'string') link = { target: link };
 
         if (index < 0) links.push(link);
 
@@ -346,7 +366,7 @@ class NoteBook {
 
             if (note.downLinks) {
 
-                note.downLinks.forEach(link => links.push({ source: name, target: fixName(link), type: 'downLink' }));
+                note.downLinks.forEach(link => links.push({ source: name, target: fixName(link.target), type: 'downLink' }));
 
             }
 
