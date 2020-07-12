@@ -34,7 +34,7 @@ class NoteBookView {
 
                 switch (message.command) {
                     case 'getGraphDataOfNoteBook':
-                        return panel.webview.postMessage(noteBook.toNetworkedData());
+                        return panel.webview.postMessage(this.getNetworkData());
                 }
 
             },
@@ -85,6 +85,15 @@ class NoteBookView {
                     ${this.getScripts(panel)}
                 </body>
                 </html>`;
+
+    }
+
+    getNetworkData() {
+
+        const nodes = Object.keys(this.noteBook.getAllNotes()).map(id => ({ id }));
+        const links = this.noteBook.getAllLinks().map(({source, target}) => ({ source, target, type: 'downLink' }));
+
+        return { nodes, links };
 
     }
 

@@ -161,6 +161,10 @@ class NoteBook {
         return this._data.notes;
     }
 
+    getAllLinks() {
+        return this._data.links;
+    }
+
     addLink(source, target, context) {
 
         let links = this._data.links;
@@ -274,32 +278,6 @@ class NoteBook {
     }
 
     toJSON() {}
-
-    toNetworkedData() {
-
-        const notes = this._data.notes;
-        const links = [];
-        const nodes = [];
-
-        const fixName = name => name.substr(0, name.length - 3);
-
-        Object.entries(notes).map(([name, note]) => {
-
-            name = fixName(name);
-
-            nodes.push({ id: name });
-
-            if (note.downLinks) {
-
-                note.downLinks.forEach(link => links.push({ source: name, target: fixName(link.target), type: 'downLink' }));
-
-            }
-
-        });
-
-        return { links, nodes };
-
-    }
 
 }
 
