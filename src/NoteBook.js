@@ -30,10 +30,7 @@ class NoteBook {
         this.store = debounce(1000, this.store);
 
         let md = new MarkdownIt();
-
-        md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin(this, true));
-
-        this.md = md;
+        this.md = md.use(require('markdown-it-codepen')).use(markdownItDuplexLinkPlugin(this, true));
 
         this._data = null;
 
@@ -60,7 +57,6 @@ class NoteBook {
     }
 
     reset() {
-        // this._modified = false;
         this._data = { notes: {} };
     }
 
@@ -89,7 +85,7 @@ class NoteBook {
 
                 if (path.extname(file) !== '.md') continue;
 
-                let noteName = path.basename(file);
+                let noteName = path.basename(file, '.md');
 
                 this.createNote(noteName, file);
 
@@ -107,7 +103,7 @@ class NoteBook {
                 content = fs.readFileSync(note.path).toString(),
                 links = this.extractDuplexLinksFromFileContent(content);
 
-            this.setNote(noteName, note.path, links);
+            links.forEach(link => this.addLink(noteName, link.target, link.context));
 
         }
 
@@ -136,9 +132,9 @@ class NoteBook {
                         if (child.isDuplexLink) {
 
                             links.push({
-                                target: `${child.content}.md`,
+                                target: child.content,
                                 context: token.content
-                            })
+                            });
 
                         }
 
@@ -154,13 +150,9 @@ class NoteBook {
 
     }
 
-    // uplinks：引用当前note的note的列表
-    // downlinks：当前note引用的note的列表
-    // 根据downlinks设置uplinks
-    createNote(name, path, downLinks, upLinks) {
+    createNote(name, path) {
         if (this._data.notes[name]) return;
-        // this._modified = true;
-        return this._data.notes[name] = { upLinks, downLinks, path };
+        return this._data.notes[name] = { name, path };
     }
 
     deleteNote(noteName) {
@@ -169,13 +161,10 @@ class NoteBook {
 
         if (!note) return;
 
-        if (Array.isArray(note.downLinks)) {
-
-            note.downLinks.forEach(link => this.deleteLinkOfNote(link.target, NoteBook.UP_LINK, noteName));
-
-        }
-
         delete this._data.notes[noteName];
+
+        this.deleteLinksBySource(noteName);
+
     }
 
     getNote(noteName) {
@@ -345,6 +334,118 @@ class NoteBook {
         if (typeof link === 'string') link = { target: link };
 
         if (index < 0) links.push(link);
+
+    }
+
+    addLink(source, target, context) {
+
+        let links = this._data.links;
+
+        if (!links) {
+            this._data.links = links = [];
+        }
+
+        links.push({ source, target, context });
+
+    }
+
+    deleteLinksBySource(source) {
+
+        let links = this._data.links;
+
+        if (!links) return;
+
+        for(let i = 0, l = links.length; i < l; i++) {
+
+            let link = links[i];
+
+            if (link.source === source) {
+
+                links.splice(i, 1);
+                i -= 1;
+                l -= 1;
+
+            }
+
+        }
+
+    }
+
+    deleteLinksByTarget(target) {
+
+        let links = this._data.links;
+
+        if (!links) return;
+
+        for(let i = 0, l = links.length; i < l; i++) {
+
+            let link = links[i];
+
+            if (link.target === target) {
+
+                links.splice(i, 1);
+                i -= 1;
+                l -= 1;
+
+            }
+
+        }
+
+    }
+
+    deleteLinkBySourceTarget(source, target) {
+
+        let links = this._data.links;
+
+        if (!links) return;
+
+        for(let i = 0, l = links.length; i < l; i++) {
+
+            let link = links[i];
+
+            if (link.source === source && link.target === target) {
+
+                return links.splice(i, 1);
+
+            }
+
+        }
+
+    }
+
+    getLinksBySouce(source) {
+
+        let links = this._data.links;
+
+        if (!links) return;
+
+        return links.filter(link => link.source === source);
+
+    }
+
+    getLinksByTarget(target) {
+
+        let links = this._data.links;
+
+        if (!links) return;
+
+        return links.filter(link => link.target === target);
+
+    }
+
+    getLinkBySourceTarget(source, target) {
+
+        let links = this._data.links;
+
+        if (!links) return;
+
+        for(let i = 0, l = links.length; i < l; i++) {
+
+            let link = links[i];
+
+            if (link.source === source && link.target === target) return link;
+
+        }
 
     }
 

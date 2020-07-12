@@ -17,7 +17,7 @@
     "contributes": {
         "markdown.previewScripts": [
             "./src/data.js",
-            "./src/renderer.js"
+            "./src/duplexLinksRenderer.js"
         ],
         "markdown.markdownItPlugins": true,
         "commands": [

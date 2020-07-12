@@ -21,7 +21,7 @@ function getCurrentNoteName() {
     let source = getSource(),
         index = source.lastIndexOf('/');
 
-    return source.substr(index + 1);
+    return source.substring(index + 1, source.length - 3);
 
 }
 
@@ -31,19 +31,33 @@ function getNote(noteName) {
 
 }
 
+function getDuplexLinks(target) {
+
+    let links = data.links;
+
+    if (!links) return;
+
+    return links.filter(link => link.target === target);
+
+}
+
 window.addEventListener('load', function () {
 
     console.log(data);
 
-    let note = getNote(getCurrentNoteName());
+    let noteName = getCurrentNoteName(),
+        links = getDuplexLinks(noteName);
 
-    if (note && note.upLinks && note.upLinks.length > 0) {
+    if (links && links.length > 0) {
 
         let rootElem = document.createElement('div');
 
         rootElem.innerHTML = `
-            <h1>被${note.upLinks.length}篇笔记引用：</h1>
-            <ol>${note.upLinks.map(caller => `<li><a href="${caller}">${caller}</a></li>`).join('')}</dl>
+            <h1>被${links.length}篇笔记引用：</h1>
+            ${links.map((link, index) => `
+                <p>${index + 1}.&nbsp;<a href="${link.source}.md">${link.source}</a></p>
+                <blockquote>${link.context}</blockquote>
+            `).join('')}
         `;
 
         document.body.appendChild(rootElem);

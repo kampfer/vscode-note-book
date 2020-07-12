@@ -62,7 +62,7 @@ function activate(context) {
 
             if (!utils.isNote(file.fsPath)) continue;
 
-            let noteName = path.basename(file.fsPath);
+            let noteName = getNoteName(file.fsPath);
 
             noteBook.deleteNote(noteName);
 
@@ -78,7 +78,7 @@ function activate(context) {
 
             if (!utils.isNote(file.fsPath)) continue;
 
-            let noteName = path.basename(file.fsPath);
+            let noteName = getNoteName(file.fsPath);
 
             noteBook.deleteNote(noteName);
 
@@ -99,11 +99,11 @@ function activate(context) {
         let noteName = utils.getNoteName(document),
             links = noteBook.extractDuplexLinksFromFileContent(document.getText());
 
-        noteBook.setNote(noteName, document.fileName, links);
+        noteBook.deleteLinksBySource(noteName);
+
+        links.forEach(link => noteBook.addLink(noteName, link.target, link.context));
 
         noteBook.store();
-
-        console.log('onDidSaveTextDocument');
 
     });
 
@@ -129,6 +129,12 @@ const getCurrentDocument = function () {
     return null;
 
 };
+
+const getNoteName = function (fsPath) {
+
+    return path.basename(fsPath, '.md');
+
+}
 
 // this method is called when your extension is deactivated
 function deactivate() { }

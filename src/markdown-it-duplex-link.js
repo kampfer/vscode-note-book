@@ -36,7 +36,7 @@ module.exports = function (noteBook, ignoreUndefinedNote = false) {
 
             let title = content.substring(labelStart, labelEnd - 1),
                 href = `${title}.md`,
-                note = noteBook.getNote(href),
+                note = noteBook.getNote(title),
                 isDuplexLink = note || !ignoreUndefinedNote,
                 token;
 

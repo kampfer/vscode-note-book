@@ -57,7 +57,7 @@ exports.walk = function walk(path, callback, ignoreHidden = false) {
 
 exports.getNoteName = function (document) {
 
-    return pathLib.basename(document.fileName);
+    return pathLib.basename(document.fileName, '.md');
 
 }
 
