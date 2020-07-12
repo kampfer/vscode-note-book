@@ -5,20 +5,6 @@ const { debounce } = require('throttle-debounce');
 const MarkdownIt = require('markdown-it');
 const markdownItDuplexLinkPlugin = require('./markdown-it-duplex-link');
 
-function getIndexOfLink(list, link) {
-
-    let target = typeof link === 'string' ? link : link.target;
-
-    for(let i = 0, l = list.length; i < l; i++) {
-
-        if (list[i].target === target) return i;
-
-    }
-
-    return -1;
-
-}
-
 class NoteBook {
 
     constructor({
@@ -173,76 +159,6 @@ class NoteBook {
 
     getAllNotes() {
         return this._data.notes;
-    }
-
-    deleteLinkOfNote(noteName, type, link) {
-
-        let note = this.getNote(noteName);
-
-        if (!note) return;
-
-        let links;
-
-        if (type === NoteBook.DOWN_LINK) {
-
-            links = note.downLinks;
-
-        } else if (type === NoteBook.UP_LINK) {
-
-            links = note.upLinks;
-
-        }
-
-        if (!links) return;
-
-        let index = link;
-
-        if (typeof index !== 'number') index = getIndexOfLink(links, link);
-
-        if (index >= 0) links.splice(index, 1);
-
-    }
-
-    addLinkToNote(noteName, type, link) {
-
-        let note = this.getNote(noteName);
-
-        if (!note) return;
-
-        let links;
-
-        if (type === NoteBook.DOWN_LINK) {
-
-            links = note.downLinks;
-
-        } else if (type === NoteBook.UP_LINK) {
-
-            links = note.upLinks;
-
-        }
-
-        if (!links) {
-
-            links = [];
-
-            if (type === NoteBook.DOWN_LINK) {
-
-                note.downLinks = links;
-
-            } else if (type === NoteBook.UP_LINK) {
-
-                note.upLinks = links;
-
-            }
-
-        }
-
-        let index = getIndexOfLink(links, link);
-
-        if (typeof link === 'string') link = { target: link };
-
-        if (index < 0) links.push(link);
-
     }
 
     addLink(source, target, context) {
