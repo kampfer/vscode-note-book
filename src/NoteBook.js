@@ -162,8 +162,8 @@ class NoteBook {
         if (!note) return;
 
         delete this._data.notes[noteName];
-
         this.deleteLinksBySource(noteName);
+        this.deleteLinksByTarget(noteName);
 
     }
 
@@ -173,98 +173,6 @@ class NoteBook {
 
     getAllNotes() {
         return this._data.notes;
-    }
-
-    // 比较两个列表，返回修改操作集合。
-    // 通过将返回结果应用在list1上可以获得list2。
-    diffList(list1 = [], list2 = []) {
-
-        let diffs = [];
-
-        for (let i = 0, l = list1.length; i < l; i++) {
-
-            if (getIndexOfLink(list2, list1[i]) < 0) {
-
-                diffs.push({ type: 'delete', index: i, value: list1[i] });
-
-            }
-
-        }
-
-        for (let i = 0, l = list2.length; i < l; i++) {
-
-            if (getIndexOfLink(list1, list2[i]) < 0) {
-
-                diffs.push({ type: 'add', index: i, value: list2[i] });
-
-            }
-
-        }
-
-        return diffs;
-
-    }
-
-    setNote(noteName, path, downLinks, upLinks) {
-
-        let note = this.getNote(noteName);
-
-        // 不传downlinks和uplinks参数，避免之后的diffs结果为空
-        if (!note) note = this.createNote(noteName, path);
-
-        if (note.path !== path) note.path = path;
-
-        if (Array.isArray(downLinks)) {
-
-            let oldDownLinks = note.downLinks,
-                diffs = this.diffList(oldDownLinks, downLinks);
-
-            note.downLinks = downLinks;
-
-            diffs.forEach(diff => {
-
-                if (diff.type === 'add') {
-
-                    this.addLinkToNote(noteName, NoteBook.DOWN_LINK, diff.value);
-                    this.addLinkToNote(diff.value, NoteBook.UP_LINK, noteName);
-
-                } else if (diff.type === 'delete') {
-
-                    this.deleteLinkOfNote(noteName, NoteBook.DOWN_LINK, diff.index);
-                    this.deleteLinkOfNote(diff.value, NoteBook.UP_LINK, noteName);
-
-                }
-
-            });
-
-        }
-
-        if (Array.isArray(upLinks)) {
-
-            let oldUpLinks = note.upLinks,
-                diffs = this.diffList(oldUpLinks, upLinks);
-
-            note.upLinks = upLinks;
-
-            diffs.forEach(diff => {
-
-                if (diff.type === 'add') {
-
-                    this.addLinkToNote(noteName, NoteBook.UP_LINK, diff.value);
-                    this.addLinkToNote(diff.value, NoteBook.DOWN_LINK, noteName);
-
-
-                } else if (diff.type === 'delete') {
-
-                    this.deleteLinkOfNote(noteName, NoteBook.UP_LINK, diff.index);
-                    this.deleteLinkOfNote(diff.value, NoteBook.DOWN_LINK, noteName);
-
-                }
-
-            });
-
-        }
-
     }
 
     deleteLinkOfNote(noteName, type, link) {
