@@ -43,7 +43,19 @@
                 "command": "vscode-note-book.viewNoteBook",
                 "title": "vscode-note-book.viewNoteBook"
             }
-        ]
+        ],
+        "menus": {
+            "explorer/context": [
+                {
+                    "command": "vscode-note-book.scan",
+                    "when": "config.NoteBook.enabled"
+                },
+                {
+                    "command": "vscode-note-book.viewNoteBook",
+                    "when": "config.NoteBook.enabled"
+                }
+            ]
+        }
     },
     "scripts": {
         "test": "jest"
