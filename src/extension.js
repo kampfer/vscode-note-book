@@ -12,8 +12,8 @@ const extensionName = 'vscode-note-book';
 
 function activate(context) {
 
-    // TODO: 通过配置激活此插件。默认配置应该是false。
-    if (false) return;
+    // 通过配置控制插件是否生效
+    if (!vscode.workspace.getConfiguration('NoteBook').get('enabled')) return;
 
     const cwd = vscode.workspace.workspaceFolders[0];
     const noteBook = new NoteBook({ localStoragePath: path.join(__dirname, './data.js') });
