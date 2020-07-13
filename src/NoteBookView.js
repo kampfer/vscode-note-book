@@ -59,9 +59,9 @@ class NoteBookView {
     getScripts(panel) {
 
         return [
-            vscode.Uri.file(
-                path.join(this.extensionContext.extensionPath, 'src', 'd3.js')
-            ),
+            // vscode.Uri.file(
+            //     path.join(this.extensionContext.extensionPath, 'src', 'd3.js')
+            // ),
             vscode.Uri.file(
                 path.join(this.extensionContext.extensionPath, 'src', 'noteBookRenderer.js')
             ),
@@ -80,6 +80,7 @@ class NoteBookView {
                     ${csp}
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Note Book View</title>
+                    <script src="https://d3js.org/d3.v5.min.js"></script>
                 </head>
                 <body>
                     ${this.getScripts(panel)}
