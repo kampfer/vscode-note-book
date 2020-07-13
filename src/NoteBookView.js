@@ -91,10 +91,13 @@ class NoteBookView {
 
     getNetworkData() {
 
-        const nodes = Object.keys(this.noteBook.getAllNotes()).map(id => ({ id }));
-        const links = this.noteBook.getAllLinks().map(({source, target}) => ({ source, target, type: 'downLink' }));
+        const nodes = this.noteBook.getAllNotes();
+        const links = this.noteBook.getAllLinks();
 
-        return { nodes, links };
+        return {
+            nodes: nodes ? Object.keys(nodes).map(id => ({ id })) : [],
+            links: links ? links.map(({source, target}) => ({ source, target, type: 'downLink' })) : []
+        };
 
     }
 

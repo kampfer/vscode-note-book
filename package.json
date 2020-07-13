@@ -1,5 +1,7 @@
 {
     "name": "vscode-note-book",
+    "author": "kampfer.liao@foxmail.com",
+    "publisher": "kampfer",
     "displayName": "vscode-note-book",
     "description": "vscode-note-book",
     "version": "0.0.1",
