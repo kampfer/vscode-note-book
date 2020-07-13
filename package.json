@@ -4,7 +4,8 @@
     "publisher": "kampfer",
     "displayName": "vscode-note-book",
     "description": "vscode-note-book",
-    "version": "0.0.1",
+    "version": "0.0.2",
+    "repository": "https://github.com/kampfer/vscode-note-book",
     "engines": {
         "vscode": "^1.45.0"
     },
@@ -60,7 +61,8 @@
         }
     },
     "scripts": {
-        "test": "jest"
+        "test": "jest",
+        "publish": "vsce package & vsce publish"
     },
     "devDependencies": {
         "jest": "^26.1.0"
