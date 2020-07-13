@@ -14,7 +14,8 @@
     ],
     "activationEvents": [
         "onCommand:vscode-note-book.scan",
-        "onCommand:vscode-note-book.preview"
+        "onCommand:vscode-note-book.preview",
+        "onCommand:vscode-note-book.viewNoteBook"
     ],
     "main": "./src/extension.js",
     "contributes": {

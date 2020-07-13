@@ -35,6 +35,10 @@ class NoteBookView {
                 switch (message.command) {
                     case 'getGraphDataOfNoteBook':
                         return panel.webview.postMessage(this.getNetworkData());
+                    case 'openNote':
+                        let note = noteBook.getNote(message.data.id);
+                        return vscode.workspace.openTextDocument(note.path)
+                            .then(document => vscode.window.showTextDocument(document, vscode.ViewColumn.one));
                 }
 
             },
