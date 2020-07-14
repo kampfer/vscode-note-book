@@ -3,6 +3,7 @@
 
 const vscode = require('vscode');
 const path = require('path');
+const NodeView = require('./NoteView');
 
 class NoteBookView {
 
@@ -36,9 +37,7 @@ class NoteBookView {
                     case 'getGraphDataOfNoteBook':
                         return panel.webview.postMessage(this.getNetworkData());
                     case 'openNote':
-                        let note = noteBook.getNote(message.data.id);
-                        return vscode.workspace.openTextDocument(note.path)
-                            .then(document => vscode.window.showTextDocument(document, vscode.ViewColumn.one));
+                        return this.createNoteView(message.data.id);
                 }
 
             },
@@ -102,6 +101,15 @@ class NoteBookView {
             nodes: nodes ? Object.keys(nodes).map(id => ({ id })) : [],
             links: links ? links.map(({source, target}) => ({ source, target, type: 'downLink' })) : []
         };
+
+    }
+
+    createNoteView(noteName) {
+
+        const note = this.noteBook.getNote(noteName);
+        const noteView = new NodeView();
+
+        vscode.workspace.openTextDocument(note.path).then(note => noteView.open(note));
 
     }
 

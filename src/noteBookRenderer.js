@@ -88,6 +88,13 @@ window.addEventListener('message', event => {
         .data(nodes)
         .join("g")
         .call(drag(simulation));
+        
+    node.on('click', ({ id }) => {
+        vscode.postMessage({
+            command: 'openNote',
+            data: { id }
+        })
+    });
 
     node.append("circle")
         .attr("stroke", "white")

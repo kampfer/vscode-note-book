@@ -5,7 +5,6 @@ const path = require('path');
 const NoteBook = require('./NoteBook');
 const duplexLinkPlugin = require('./markdown-it-duplex-link');
 const utils = require('./utils');
-const Previewer = require('./Previewer');
 const NoteBookView = require('./NoteBookView');
 
 const extensionName = 'vscode-note-book';
@@ -17,7 +16,6 @@ function activate(context) {
 
     const cwd = vscode.workspace.workspaceFolders[0];
     const noteBook = new NoteBook({ localStoragePath: path.join(__dirname, './data.js') });
-    const previewer = new Previewer(noteBook);
     const noteBookView = new NoteBookView({ noteBook, extensionContext: context });
 
     const commands = [
@@ -27,13 +25,6 @@ function activate(context) {
                 noteBook.scan(cwd.uri.fsPath);
                 noteBook.store();
                 vscode.window.showInformationMessage(`扫描${cwd.uri.fsPath}完成！`);
-            }
-        },
-        {
-            id: `${extensionName}.preview`,
-            fn: function () {
-                let doc = getCurrentDocument();
-                previewer.open(doc);
             }
         },
         {

@@ -14,7 +14,6 @@
     ],
     "activationEvents": [
         "onCommand:vscode-note-book.scan",
-        "onCommand:vscode-note-book.preview",
         "onCommand:vscode-note-book.viewNoteBook"
     ],
     "main": "./src/extension.js",
@@ -38,10 +37,6 @@
             {
                 "command": "vscode-note-book.scan",
                 "title": "vscode-note-book.scan"
-            },
-            {
-                "command": "vscode-note-book.preview",
-                "title": "vscode-note-book.preview"
             },
             {
                 "command": "vscode-note-book.viewNoteBook",
@@ -69,6 +64,7 @@
         "jest": "^26.1.0"
     },
     "dependencies": {
+        "highlight.js": "^10.1.1",
         "markdown-it": "^11.0.0",
         "markdown-it-codepen": "^1.0.1",
         "throttle-debounce": "^2.2.1"
