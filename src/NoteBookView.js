@@ -107,7 +107,10 @@ class NoteBookView {
     createNoteView(noteName) {
 
         const note = this.noteBook.getNote(noteName);
-        const noteView = new NodeView();
+        const noteView = new NodeView({
+            noteBook: this.noteBook,
+            extensionContext: this.extensionContext
+        });
 
         vscode.workspace.openTextDocument(note.path).then(note => noteView.open(note));
 

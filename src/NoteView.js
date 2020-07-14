@@ -9,9 +9,14 @@ const hljs = require('highlight.js');
 
 class NoteView {
 
-    constructor(noteBook) {
+    constructor({
+        noteBook,
+        extensionContext
+    }) {
 
         this.noteBook = noteBook;
+
+        this.extensionContext = extensionContext;
 
         const md = new MarkdownIt({
             highlight: function (str, lang) {
@@ -46,7 +51,24 @@ class NoteView {
             NoteView.webviewType,
             this.getTitle(noteName),
             vscode.ViewColumn.one,
-            {}
+            {
+                enableScripts: true
+            }
+        );
+
+        panel.webview.onDidReceiveMessage(
+            message => {
+
+                const noteBook = this.noteBook;
+
+                switch (message.command) {
+                    case 'getDuplexLinks':
+                        return panel.webview.postMessage(noteBook.getLinksByTarget(message.data.id));
+                }
+
+            },
+            undefined,
+            this.extensionContext.subscriptions
         );
 
         this._panel = panel;
@@ -88,12 +110,18 @@ class NoteView {
             `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, 'vscode-github-markdown-preview-style-master/base.css'))}">`,
             `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, 'vscode-github-markdown-preview-style-master/github-markdown.css'))}">`,
             `<link rel="stylesheet" href="${this.asWebviewUri(path.join(nodeModulesPath, 'highlight.js/styles/github.css'))}">`,
-            `<link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">`,
+            `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">`,
             `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markdown-it-texmath/css/texmath.min.css">`,
         );
 
         return styles.join('\n');
 
+    }
+
+    getScripts() {
+        return [
+            `<script src="${this.asWebviewUri(path.join(__dirname, 'noteRenderer.js'))}" charset="UTF-8"></script>`
+        ].join('/n');
     }
 
     getWebviewContent(note) {
@@ -109,9 +137,11 @@ class NoteView {
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>${this.getTitle(noteName)}</title>
                     ${this.getStyles()}
+                    <script>const NOTE_NAME = '${noteName}';</script>
                 </head>
                 <body class="vscode-body">
                     ${body}
+                    ${this.getScripts()}
                 </body>
                 </html>`;
 
