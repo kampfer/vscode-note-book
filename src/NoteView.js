@@ -3,6 +3,7 @@ const MarkdownIt = require('markdown-it');
 const utils = require('./utils');
 const markdownItCodepen = require('markdown-it-codepen');
 const markdownItDuplexLink = require('./markdown-it-duplex-link');
+const markdownItTexmath = require('markdown-it-texmath');
 const path = require('path');
 const hljs = require('highlight.js');
 
@@ -25,7 +26,13 @@ class NoteView {
                 return ''; // use external default escaping
             }
         });
-        md.use(markdownItCodepen).use(markdownItDuplexLink(noteBook, true));
+        md.use(markdownItCodepen)
+            .use(markdownItDuplexLink(noteBook, true))
+            .use(markdownItTexmath, {
+                engine: require('katex'),
+                delimiters: 'julia',
+                katexOptions: { macros: { "\\RR": "\\mathbb{R}" } }
+            });
 
         this.md = md;
 
@@ -81,6 +88,8 @@ class NoteView {
             `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, 'vscode-github-markdown-preview-style-master/base.css'))}">`,
             `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, 'vscode-github-markdown-preview-style-master/github-markdown.css'))}">`,
             `<link rel="stylesheet" href="${this.asWebviewUri(path.join(nodeModulesPath, 'highlight.js/styles/github.css'))}">`,
+            `<link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">`,
+            `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markdown-it-texmath/css/texmath.min.css">`,
         );
 
         return styles.join('\n');
@@ -101,7 +110,7 @@ class NoteView {
                     <title>${this.getTitle(noteName)}</title>
                     ${this.getStyles()}
                 </head>
-                <body class="vscode-body markdown-body">
+                <body class="vscode-body">
                     ${body}
                 </body>
                 </html>`;
