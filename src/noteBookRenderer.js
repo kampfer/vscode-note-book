@@ -89,7 +89,7 @@ window.addEventListener('message', event => {
         .join("g")
         .call(drag(simulation));
         
-    node.on('click', ({ id }) => {
+    node.on('dblclick', ({ id }) => {
         vscode.postMessage({
             command: 'openNote',
             data: { id }
