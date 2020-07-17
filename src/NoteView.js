@@ -11,12 +11,15 @@ class NoteView {
 
     constructor({
         noteBook,
-        extensionContext
+        extensionContext,
+        root,
     }) {
 
         this.noteBook = noteBook;
 
         this.extensionContext = extensionContext;
+
+        this.root = root;
 
         const md = new MarkdownIt({
             highlight: function (str, lang) {
@@ -65,6 +68,8 @@ class NoteView {
                 switch (message.command) {
                     case 'getDuplexLinks':
                         return panel.webview.postMessage(noteBook.getLinksByTarget(message.data.id));
+                    case 'openLink':
+                        return this.onDidClickPreviewLink(message.data.href);
                 }
 
             },
@@ -159,6 +164,22 @@ class NoteView {
     asWebviewUri(uri) {
 
         return this._panel.webview.asWebviewUri(vscode.Uri.file(uri));
+
+    }
+
+    onDidClickPreviewLink(href) {
+
+        let [hrefPath, fragment] = decodeURIComponent(href).split('#');
+
+        if (hrefPath[0] !== '/') {
+            hrefPath = path.join(this.root.uri.fsPath, hrefPath);
+        }
+
+        const source = vscode.Uri.file(hrefPath);
+
+        vscode.workspace.openTextDocument(source).then(note => {
+            this._panel.webview.html = this.getWebviewContent(note);
+        });
 
     }
 

@@ -9,11 +9,13 @@ class NoteBookView {
 
     constructor({
         noteBook,
-        extensionContext
+        extensionContext,
+        root
     } = {}) {
 
         this.noteBook = noteBook;
         this.extensionContext = extensionContext;
+        this.root = root;
 
     }
 
@@ -109,7 +111,8 @@ class NoteBookView {
         const note = this.noteBook.getNote(noteName);
         const noteView = new NodeView({
             noteBook: this.noteBook,
-            extensionContext: this.extensionContext
+            extensionContext: this.extensionContext,
+            root: this.root,
         });
 
         vscode.workspace.openTextDocument(note.path).then(note => noteView.open(note));

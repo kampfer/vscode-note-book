@@ -16,7 +16,7 @@ function activate(context) {
 
     const cwd = vscode.workspace.workspaceFolders[0];
     const noteBook = new NoteBook({ localStoragePath: path.join(__dirname, './data.js') });
-    const noteBookView = new NoteBookView({ noteBook, extensionContext: context });
+    const noteBookView = new NoteBookView({ noteBook, extensionContext: context, root: cwd });
 
     const commands = [
         {

@@ -22,6 +22,45 @@ window.addEventListener('message', event => {
 
 });
 
+const passThroughLinkSchemes = ['http:', 'https:', 'mailto:', 'vscode:', 'vscode-insiders:'];
+
+// 处理笔记中的点击事件，特别是指向其他笔记的链接
+document.addEventListener('click', function (e) {
+
+    let node = e.target;
+
+    // 从触发事件的元素开始往上遍历，寻找带链接的父辈
+    while(node) {
+
+        if (node.tagName === 'A') {
+
+            if (node.href.startsWith('#')) return;
+
+            // 略过已知的链接协议
+            if (passThroughLinkSchemes.some(scheme => node.href.startsWith(scheme))) return;
+
+            // 未知的链接协议交给nodejs处理
+            vscode.postMessage({
+                command: 'openLink',
+                data: {
+                    href: node.getAttribute('href') // 不能使用node.href，因为会自动转换为绝对地址，不好处理
+                }
+            });
+            e.preventDefault();
+            e.stopPropagation();
+
+            return;
+
+        } else {
+
+            node = node.parentNode;
+
+        }
+
+    }
+
+});
+
 vscode.postMessage({
     command: 'getDuplexLinks',
     data: {
