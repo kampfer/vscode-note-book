@@ -52,7 +52,8 @@ class NoteView {
             this.getTitle(noteName),
             vscode.ViewColumn.one,
             {
-                enableScripts: true
+                enableScripts: true,
+                localResourceRoots: this.getLocalResourceRoots()
             }
         );
 
@@ -75,6 +76,13 @@ class NoteView {
 
         panel.webview.html = this.getWebviewContent(note);
 
+    }
+
+    getLocalResourceRoots() {
+        const roots =  [vscode.Uri.file(this.extensionContext.extensionPath)];
+        const workspaceRoots = vscode.workspace.workspaceFolders.map(folder => folder.uri);
+        if (workspaceRoots) roots.push(...workspaceRoots);
+        return roots;
     }
 
     getTitle(noteName) {
@@ -136,6 +144,7 @@ class NoteView {
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>${this.getTitle(noteName)}</title>
+                    <base href="${this.asWebviewUri(note.uri.fsPath)}">
                     ${this.getStyles()}
                     <script>const NOTE_NAME = '${noteName}';</script>
                 </head>
