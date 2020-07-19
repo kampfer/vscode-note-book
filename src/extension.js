@@ -47,6 +47,20 @@ function activate(context) {
 
     // 注册事件
     // https://code.visualstudio.com/api/references/vscode-api#workspace
+    vscode.workspace.onDidCreateFiles(({ files }) => {
+
+        for(let file of files) {
+
+            if (!utils.isNote(file.fsPath)) continue;
+
+            let noteName = getNoteName(file.fsPath);
+
+            noteBook.createNote(noteName, file.fsPath);
+
+        }
+
+    });
+
     vscode.workspace.onDidDeleteFiles(function ({ files }) {
 
         for(let file of files) {
