@@ -2,6 +2,7 @@
 
 const vscode = require('vscode');
 const path = require('path');
+const fs = require('fs');
 const NoteBook = require('./NoteBook');
 const duplexLinkPlugin = require('./markdown-it-duplex-link');
 const utils = require('./utils');
@@ -79,17 +80,26 @@ function activate(context) {
 
     vscode.workspace.onDidRenameFiles(function ({ files }) {
 
-        for(let file of files) {
+        for(const { newUri, oldUri } of files) {
 
-            if (!utils.isNote(file.fsPath)) continue;
+            if (utils.isNote(oldUri.fsPath)) {
 
-            let noteName = getNoteName(file.fsPath);
+                let noteName = getNoteName(oldUri.fsPath);
 
-            noteBook.deleteNote(noteName);
+                noteBook.deleteNote(noteName);
 
-            let links = noteBook.extractDuplexLinksFromFileContent(file.toString());
+            }
 
-            noteBook.setNote(noteName, file.fsPath, links);
+            if (utils.isNote(newUri.fsPath)) {
+
+                let noteName = getNoteName(newUri.fsPath),
+                    file = fs.readFileSync(newUri.fsPath),
+                    links = noteBook.extractDuplexLinksFromFileContent(file.toString());
+
+                noteBook.createNote(noteName, newUri.fsPath);
+                links.forEach(link => noteBook.addLink(noteName, link.target, link.context));
+
+            }
 
         }
 
