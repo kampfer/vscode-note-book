@@ -40,6 +40,52 @@ const color = d3.scaleOrdinal(types, d3.schemeCategory10);
 const height = window.innerHeight;
 const width = window.innerWidth;
 
+function findRelatedNodesAndLinks(links, id) {
+
+    function find(links, id, direction, result) {
+
+        for (let i = 0, l = links.length; i < l; i++) {
+
+            let link = links[i];
+
+            if (direction === 'up') {
+
+                if (link.target.id === id) {
+
+                    result.relatedLinks.push(i);
+                    find(links, link.source.id, direction, result);
+
+                }
+
+            } else if (direction === 'down') {
+
+                if (link.source.id === id) {
+
+                    result.relatedLinks.push(i);
+                    find(links, link.target.id, direction, result);
+
+                }
+
+            }
+
+        }
+
+        if (result.relatedNodes.indexOf(id) < 0) result.relatedNodes.push(id);
+
+    }
+
+    const result = {
+        relatedNodes: [],
+        relatedLinks: []
+    };
+
+    find(links, id, 'up', result);
+    find(links, id, 'down', result);
+
+    return result;
+
+}
+
 window.addEventListener('message', event => {
 
     const message = event.data;
@@ -88,7 +134,7 @@ window.addEventListener('message', event => {
         .data(nodes)
         .join("g")
         .call(drag(simulation));
-        
+
     node.on('dblclick', ({ id }) => {
         vscode.postMessage({
             command: 'openNote',
@@ -96,7 +142,25 @@ window.addEventListener('message', event => {
         })
     });
 
-    node.append("circle")
+    node.on('click', ({ id }) => {
+
+        const color2 = color('upLink');
+        const color3 = color('downLink');
+
+        const { relatedNodes, relatedLinks } = findRelatedNodesAndLinks(links, id);
+
+        node.attr('fill', d => relatedNodes.indexOf(d.id) >= 0 ? color2 : 'currentColor');
+
+        link.attr('stroke', d => relatedLinks.indexOf(d.index) >= 0 ? color2 : color3)
+            .attr('marker-end', d => relatedLinks.indexOf(d.index) >= 0 ?
+                `url(${new URL(`#arrow-upLink`, location)})` :
+                `url(${new URL(`#arrow-downLink`, location)})`);
+
+        circles.attr('stroke', d => d.id === id ? color2 : 'white');
+
+    });
+
+    const circles = node.append("circle")
         .attr("stroke", "white")
         .attr("stroke-width", 1.5)
         .attr("r", 4);
@@ -105,10 +169,10 @@ window.addEventListener('message', event => {
         .attr("x", 8)
         .attr("y", "0.31em")
         .text(d => d.id);
-        // .clone(true).lower()
-        // .attr("fill", "none")
-        // .attr("stroke", "white")
-        // .attr("stroke-width", 3);
+    // .clone(true).lower()
+    // .attr("fill", "none")
+    // .attr("stroke", "white")
+    // .attr("stroke-width", 3);
 
     simulation.on("tick", () => {
         link.attr("d", linkArc);
