@@ -17,6 +17,9 @@ class NoteBookView {
         this.extensionContext = extensionContext;
         this.root = root;
 
+        this.onDidStore = this.refreshView.bind(this);
+        this.noteBook.on('store', this.onDidStore);
+
     }
 
     open() {
@@ -47,7 +50,9 @@ class NoteBookView {
             this.extensionContext.subscriptions
         );
 
-        panel.webview.html = this.getWebviewContent(panel);
+        this._panel = panel;
+
+        this._panel.webview.html = this.getWebviewContent();
 
     }
 
@@ -74,8 +79,9 @@ class NoteBookView {
 
     }
 
-    getWebviewContent(panel) {
+    getWebviewContent() {
 
+        const panel = this._panel;
         const csp = this.getCsp();
 
         return `<!DOCTYPE html>
@@ -116,6 +122,20 @@ class NoteBookView {
         });
 
         vscode.workspace.openTextDocument(note.path).then(note => noteView.open(note));
+
+    }
+
+    refreshView() {
+
+        this._panel.webview.postMessage({
+            command: 'refresh'
+        });
+
+    }
+
+    dispose() {
+
+        this.noteBook.off('store', this.onDidStore);
 
     }
 

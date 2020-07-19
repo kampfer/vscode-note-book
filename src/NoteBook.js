@@ -1,15 +1,18 @@
 const fs = require('fs');
 const path = require('path');
+const EventEmitter = require('events')
 const { walk } = require('./utils');
 const { debounce } = require('throttle-debounce');
 const MarkdownIt = require('markdown-it');
 const markdownItDuplexLinkPlugin = require('./markdown-it-duplex-link');
 
-class NoteBook {
+class NoteBook extends EventEmitter {
 
     constructor({
         localStoragePath
     } = {}) {
+
+        super();
 
         this.localStoragePath = localStoragePath;
 
@@ -49,6 +52,8 @@ class NoteBook {
     store() {
 
         fs.writeFileSync(this.localStoragePath, `(function (exports) { exports.data = ${JSON.stringify(this._data)};})(typeof exports !== 'undefined' ? exports : window);`);
+
+        this.emit('store');
 
         console.log(`写入${this.localStoragePath}`);
 

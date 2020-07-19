@@ -86,11 +86,9 @@ function findRelatedNodesAndLinks(links, id) {
 
 }
 
-window.addEventListener('message', event => {
+function renderNoteBook(data) {
 
-    const message = event.data;
-
-    const { links, nodes, } = message;
+    const { links, nodes, } = data;
 
     const simulation = d3.forceSimulation(nodes)
         .force("link", d3.forceLink(links).id(d => d.id))
@@ -180,6 +178,18 @@ window.addEventListener('message', event => {
     });
 
     document.body.appendChild(svg.node());
+
+}
+
+window.addEventListener('message', event => {
+
+    const message = event.data;
+
+    if (message.command === 'refresh') {
+        location.reload();
+    } else {
+        renderNoteBook(event.data);
+    }
 
 });
 
