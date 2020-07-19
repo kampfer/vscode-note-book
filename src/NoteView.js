@@ -179,6 +179,7 @@ class NoteView {
 
         vscode.workspace.openTextDocument(source).then(note => {
             this._panel.webview.html = this.getWebviewContent(note);
+            this._panel.title = path.basename(hrefPath, '.md');
         });
 
     }
