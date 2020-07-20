@@ -27,7 +27,7 @@ class NoteBookView {
         const panel = vscode.window.createWebviewPanel(
             NoteBookView.webviewType,
             this.getTitle(),
-            vscode.ViewColumn.one,
+            vscode.ViewColumn.One,
             {
                 enableScripts: true
             }

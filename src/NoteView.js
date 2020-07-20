@@ -53,7 +53,7 @@ class NoteView {
         const panel = vscode.window.createWebviewPanel(
             NoteView.webviewType,
             this.getTitle(noteName),
-            vscode.ViewColumn.one,
+            vscode.ViewColumn.Two,
             {
                 enableScripts: true,
                 localResourceRoots: this.getLocalResourceRoots()
@@ -186,6 +186,6 @@ class NoteView {
 
 }
 
-NoteView.webviewType = 'vscode-note-book-preview';
+NoteView.webviewType = 'vscode-note-view';
 
 module.exports = NoteView;
