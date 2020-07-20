@@ -193,6 +193,8 @@ window.addEventListener('message', event => {
 
 });
 
+window.addEventListener('resize', () => location.reload());
+
 vscode.postMessage({
     command: 'getGraphDataOfNoteBook'
 });
