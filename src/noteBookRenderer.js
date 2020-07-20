@@ -134,10 +134,14 @@ function renderNoteBook(data) {
         .call(drag(simulation));
 
     node.on('dblclick', ({ id }) => {
+
+        node.attr('fill', d => id === d.id ? color('upLink') : 'currentColor');
+
         vscode.postMessage({
             command: 'openNote',
             data: { id }
-        })
+        });
+
     });
 
     node.on('click', ({ id }) => {
