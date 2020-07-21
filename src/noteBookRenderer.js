@@ -39,6 +39,10 @@ const types = ['downLink', 'upLink'];
 const color = d3.scaleOrdinal(types, d3.schemeCategory10);
 const height = window.innerHeight;
 const width = window.innerWidth;
+const normalColor = color('downLink');
+const activeColor = color('upLink');
+
+let rootElem, linkElems, nodeElems, circleElems, links, nodes;
 
 function findRelatedNodesAndLinks(links, id) {
 
@@ -88,7 +92,8 @@ function findRelatedNodesAndLinks(links, id) {
 
 function renderNoteBook(data) {
 
-    const { links, nodes, } = data;
+    links = data.links;
+    nodes = data.nodes;
 
     const simulation = d3.forceSimulation(nodes)
         .force("link", d3.forceLink(links).id(d => d.id))
@@ -133,32 +138,14 @@ function renderNoteBook(data) {
         .join("g")
         .call(drag(simulation));
 
-    node.on('dblclick', ({ id }) => {
+    node.on('click', ({ id }) => {
 
-        node.attr('fill', d => id === d.id ? color('upLink') : 'currentColor');
+        selectNode(id);
 
         vscode.postMessage({
             command: 'openNote',
             data: { id }
         });
-
-    });
-
-    node.on('click', ({ id }) => {
-
-        const color2 = color('upLink');
-        const color3 = color('downLink');
-
-        const { relatedNodes, relatedLinks } = findRelatedNodesAndLinks(links, id);
-
-        node.attr('fill', d => relatedNodes.indexOf(d.id) >= 0 ? color2 : 'currentColor');
-
-        link.attr('stroke', d => relatedLinks.indexOf(d.index) >= 0 ? color2 : color3)
-            .attr('marker-end', d => relatedLinks.indexOf(d.index) >= 0 ?
-                `url(${new URL(`#arrow-upLink`, location)})` :
-                `url(${new URL(`#arrow-downLink`, location)})`);
-
-        circles.attr('stroke', d => d.id === id ? color2 : 'white');
 
     });
 
@@ -171,17 +158,47 @@ function renderNoteBook(data) {
         .attr("x", 8)
         .attr("y", "0.31em")
         .text(d => d.id);
-    // .clone(true).lower()
-    // .attr("fill", "none")
-    // .attr("stroke", "white")
-    // .attr("stroke-width", 3);
 
     simulation.on("tick", () => {
         link.attr("d", linkArc);
         node.attr("transform", d => `translate(${d.x},${d.y})`);
     });
 
-    document.body.appendChild(svg.node());
+    rootElem = svg;
+    linkElems = link;
+    nodeElems = node;
+    circleElems = circles;
+
+    let state = vscode.getState();
+
+    if (state && state.currentNode) selectNode(state.currentNode);
+
+    document.body.appendChild(rootElem.node());
+
+}
+
+function selectNode(id) {
+
+    vscode.setState({ currentNode: id });
+
+    const { relatedNodes, relatedLinks } = findRelatedNodesAndLinks(links, id);
+
+    nodeElems.attr('fill', d => relatedNodes.indexOf(d.id) >= 0 ? activeColor : 'currentColor');
+
+    linkElems.attr('stroke', d => relatedLinks.indexOf(d.index) >= 0 ? activeColor : normalColor)
+        .attr('marker-end', d => relatedLinks.indexOf(d.index) >= 0 ?
+            `url(${new URL(`#arrow-upLink`, location)})` :
+            `url(${new URL(`#arrow-downLink`, location)})`);
+
+    circleElems.attr('stroke', d => d.id === id ? 'white': (relatedNodes.indexOf(d.id) >= 0 ? activeColor : 'white'));
+
+}
+
+function resizeView() {
+
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    rootElem.attr("viewBox", [-width / 2, -height / 2, width, height]);
 
 }
 
@@ -191,13 +208,15 @@ window.addEventListener('message', event => {
 
     if (message.command === 'refresh') {
         location.reload();
+    } else if (message.command === 'selectNode') {
+        selectNode(event.data.data.id);
     } else {
         renderNoteBook(event.data);
     }
 
 });
 
-window.addEventListener('resize', () => location.reload());
+window.addEventListener('resize', () => resizeView());
 
 vscode.postMessage({
     command: 'getGraphDataOfNoteBook'

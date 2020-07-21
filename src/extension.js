@@ -15,6 +15,7 @@ function activate(context) {
     // 通过配置控制插件是否生效
     if (!vscode.workspace.getConfiguration('NoteBook').get('enabled')) return;
 
+    // 笔记本应该只有一个目录
     const cwd = vscode.workspace.workspaceFolders[0];
     const noteBook = new NoteBook({ localStoragePath: path.join(__dirname, './data.js') });
     const noteBookView = new NoteBookView({ noteBook, extensionContext: context, root: cwd });

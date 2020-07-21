@@ -77,9 +77,28 @@ class NoteView {
             this.extensionContext.subscriptions
         );
 
+        panel.onDidDispose(
+            () => {
+                this._panel = null;
+            },
+            null,
+            this.extensionContext.subscriptions
+        );
+
         this._panel = panel;
 
         panel.webview.html = this.getWebviewContent(note);
+
+    }
+
+    openBySelf(note) {
+
+        if (!this._panel) {
+            this.open(note);
+        } else {
+            this._panel.webview.html = this.getWebviewContent(note);
+            this._panel.title = path.basename(note.uri.path, '.md');
+        }
 
     }
 
@@ -177,10 +196,7 @@ class NoteView {
 
         const source = vscode.Uri.file(hrefPath);
 
-        vscode.workspace.openTextDocument(source).then(note => {
-            this._panel.webview.html = this.getWebviewContent(note);
-            this._panel.title = path.basename(hrefPath, '.md');
-        });
+        vscode.workspace.openTextDocument(source).then(note => this.openBySelf(note));
 
     }
 

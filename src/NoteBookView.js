@@ -42,11 +42,19 @@ class NoteBookView {
                     case 'getGraphDataOfNoteBook':
                         return panel.webview.postMessage(this.getNetworkData());
                     case 'openNote':
-                        return this.createNoteView(message.data.id);
+                        return this.openNote(message.data.id);
                 }
 
             },
             undefined,
+            this.extensionContext.subscriptions
+        );
+
+        panel.onDidDispose(
+            () => {
+                this._panel = null;
+            },
+            null,
             this.extensionContext.subscriptions
         );
 
@@ -106,7 +114,7 @@ class NoteBookView {
 
         return {
             nodes: nodes ? Object.keys(nodes).map(id => ({ id })) : [],
-            links: links ? links.map(({source, target}) => ({ source, target, type: 'downLink' })) : []
+            links: links ? links.map(({ source, target }) => ({ source, target, type: 'downLink' })) : []
         };
 
     }
@@ -121,6 +129,22 @@ class NoteBookView {
         });
 
         vscode.workspace.openTextDocument(note.path).then(note => noteView.open(note));
+
+    }
+
+    openNote(noteName) {
+
+        const note = this.noteBook.getNote(noteName);
+
+        if (!this._noteView) {
+            this._noteView = new NodeView({
+                noteBook: this.noteBook,
+                extensionContext: this.extensionContext,
+                root: this.root,
+            });
+        }
+
+        vscode.workspace.openTextDocument(note.path).then(note => this._noteView.openBySelf(note));
 
     }
 
