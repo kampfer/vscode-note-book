@@ -31,9 +31,7 @@ class NoteBook extends EventEmitter {
 
         try {
 
-            let { data } = require(dataPath);
-
-            this._data = data;
+            this._data = JSON.parse(fs.readFileSync(this.localStoragePath));
 
         } catch (e) {
 
@@ -51,7 +49,7 @@ class NoteBook extends EventEmitter {
 
     store() {
 
-        fs.writeFileSync(this.localStoragePath, `(function (exports) { exports.data = ${JSON.stringify(this._data)};})(typeof exports !== 'undefined' ? exports : window);`);
+        fs.writeFileSync(this.localStoragePath, JSON.stringify(this._data));
 
         this.emit('store');
 

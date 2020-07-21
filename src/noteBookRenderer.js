@@ -2,6 +2,15 @@
 
 const vscode = acquireVsCodeApi();
 
+const types = ['downLink', 'upLink'];
+const color = d3.scaleOrdinal(types, d3.schemeCategory10);
+const height = window.innerHeight;
+const width = window.innerWidth;
+const normalColor = color('downLink');
+const activeColor = color('upLink');
+
+let rootElem, linkElems, nodeElems, circleElems, links, nodes;
+
 const drag = simulation => {
 
     function dragstarted(d) {
@@ -34,15 +43,6 @@ function linkArc(d) {
       A${r},${r} 0 0,1 ${d.target.x},${d.target.y}
     `;
 }
-
-const types = ['downLink', 'upLink'];
-const color = d3.scaleOrdinal(types, d3.schemeCategory10);
-const height = window.innerHeight;
-const width = window.innerWidth;
-const normalColor = color('downLink');
-const activeColor = color('upLink');
-
-let rootElem, linkElems, nodeElems, circleElems, links, nodes;
 
 function findRelatedNodesAndLinks(links, id) {
 

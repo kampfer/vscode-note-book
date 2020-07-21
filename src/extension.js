@@ -17,7 +17,7 @@ function activate(context) {
 
     // 笔记本应该只有一个目录
     const cwd = vscode.workspace.workspaceFolders[0];
-    const noteBook = new NoteBook({ localStoragePath: path.join(__dirname, './data.js') });
+    const noteBook = new NoteBook({ localStoragePath: path.join(cwd.uri.fsPath, '.vscode', 'noteBook.json') });
     const noteBookView = new NoteBookView({ noteBook, extensionContext: context, root: cwd });
 
     const commands = [
