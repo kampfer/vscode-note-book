@@ -83,8 +83,10 @@ function findRelatedNodesAndLinks(links, id) {
         relatedLinks: []
     };
 
-    find(links, id, 'up', result);
-    find(links, id, 'down', result);
+    if (id) {
+        find(links, id, 'up', result);
+        find(links, id, 'down', result);
+    }
 
     return result;
 
@@ -140,12 +142,13 @@ function renderNoteBook(data) {
 
     node.on('click', ({ id }) => {
 
-        selectNode(id);
-
         vscode.postMessage({
-            command: 'openNote',
+            command: 'selectNote',
             data: { id }
         });
+
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
 
     });
 
@@ -208,10 +211,10 @@ window.addEventListener('message', event => {
 
     if (message.command === 'refresh') {
         location.reload();
-    } else if (message.command === 'selectNode') {
-        selectNode(event.data.data.id);
+    } else if (message.command === 'selectNote') {
+        selectNode(message.data.id);
     } else {
-        renderNoteBook(event.data);
+        renderNoteBook(message);
     }
 
 });

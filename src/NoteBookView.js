@@ -3,7 +3,7 @@
 
 const vscode = require('vscode');
 const path = require('path');
-const NodeView = require('./NoteView');
+const NoteView = require('./NoteView');
 
 class NoteBookView {
 
@@ -16,6 +16,8 @@ class NoteBookView {
         this.noteBook = noteBook;
         this.extensionContext = extensionContext;
         this.root = root;
+
+        this.currentNote = undefined;
 
         this.onDidStore = this.refreshView.bind(this);
         this.noteBook.on('store', this.onDidStore);
@@ -36,13 +38,11 @@ class NoteBookView {
         panel.webview.onDidReceiveMessage(
             message => {
 
-                const noteBook = this.noteBook;
-
                 switch (message.command) {
                     case 'getGraphDataOfNoteBook':
                         return panel.webview.postMessage(this.getNetworkData());
-                    case 'openNote':
-                        return this.openNote(message.data.id);
+                    case 'selectNote':
+                        return this.selectNote(message.data.id);
                 }
 
             },
@@ -119,29 +119,27 @@ class NoteBookView {
 
     }
 
-    createNoteView(noteName) {
+    selectNote(noteName) {
 
         const note = this.noteBook.getNote(noteName);
-        const noteView = new NodeView({
-            noteBook: this.noteBook,
-            extensionContext: this.extensionContext,
-            root: this.root,
+
+        if (!note || note === this.currentNote) return;
+
+        this.currentNote = note;
+
+        this._panel.webview.postMessage({
+            command: 'selectNote',
+            data: { id: noteName }
         });
 
-        vscode.workspace.openTextDocument(note.path).then(note => noteView.open(note));
-
-    }
-
-    openNote(noteName) {
-
-        const note = this.noteBook.getNote(noteName);
-
         if (!this._noteView) {
-            this._noteView = new NodeView({
+            this._noteView = new NoteView({
                 noteBook: this.noteBook,
                 extensionContext: this.extensionContext,
                 root: this.root,
             });
+
+            this._noteView.on('selectNote', ({ id }) => this.selectNote(id));
         }
 
         vscode.workspace.openTextDocument(note.path).then(note => this._noteView.openBySelf(note));
@@ -159,6 +157,7 @@ class NoteBookView {
     dispose() {
 
         this.noteBook.off('store', this.onDidStore);
+        if (this._noteView) this._noteView.off('selectNote');
 
     }
 

@@ -1,5 +1,6 @@
 const vscode = require('vscode');
 const MarkdownIt = require('markdown-it');
+const EventEmitter = require('events');
 const utils = require('./utils');
 const markdownItCodepen = require('markdown-it-codepen');
 const markdownItDuplexLink = require('./markdown-it-duplex-link');
@@ -7,13 +8,15 @@ const markdownItTexmath = require('markdown-it-texmath');
 const path = require('path');
 const hljs = require('highlight.js');
 
-class NoteView {
+class NoteView extends EventEmitter {
 
     constructor({
         noteBook,
         extensionContext,
         root,
     }) {
+
+        super();
 
         this.noteBook = noteBook;
 
@@ -68,8 +71,8 @@ class NoteView {
                 switch (message.command) {
                     case 'getDuplexLinks':
                         return panel.webview.postMessage(noteBook.getLinksByTarget(message.data.id));
-                    case 'openLink':
-                        return this.onDidClickPreviewLink(message.data.href);
+                    case 'selectNote':
+                        return this.emit('selectNote', { id: path.basename(message.data.href, '.md') });
                 }
 
             },
@@ -183,20 +186,6 @@ class NoteView {
     asWebviewUri(uri) {
 
         return this._panel.webview.asWebviewUri(vscode.Uri.file(uri));
-
-    }
-
-    onDidClickPreviewLink(href) {
-
-        let [hrefPath, fragment] = decodeURIComponent(href).split('#');
-
-        if (hrefPath[0] !== '/') {
-            hrefPath = path.join(this.root.uri.fsPath, hrefPath);
-        }
-
-        const source = vscode.Uri.file(hrefPath);
-
-        vscode.workspace.openTextDocument(source).then(note => this.openBySelf(note));
 
     }
 

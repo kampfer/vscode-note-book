@@ -39,9 +39,9 @@ document.addEventListener('click', function (e) {
             // 略过已知的链接协议
             if (passThroughLinkSchemes.some(scheme => node.href.startsWith(scheme))) return;
 
-            // 未知的链接协议交给nodejs处理
+            // 点击其他笔记
             vscode.postMessage({
-                command: 'openLink',
+                command: 'selectNote',
                 data: {
                     href: node.getAttribute('href') // 不能使用node.href，因为会自动转换为绝对地址，不好处理
                 }
