@@ -4,7 +4,7 @@
     "publisher": "kampfer",
     "displayName": "vscode-note-book",
     "description": "vscode-note-book",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "repository": "https://github.com/kampfer/vscode-note-book",
     "engines": {
         "vscode": "^1.45.0"
@@ -13,6 +13,7 @@
         "Other"
     ],
     "activationEvents": [
+        "onStartupFinished",
         "onCommand:vscode-note-book.scan",
         "onCommand:vscode-note-book.viewNoteBook"
     ],
