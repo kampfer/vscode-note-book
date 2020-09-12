@@ -4,7 +4,7 @@
     "publisher": "kampfer",
     "displayName": "vscode-note-book",
     "description": "vscode-note-book",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "repository": "https://github.com/kampfer/vscode-note-book",
     "engines": {
         "vscode": "^1.45.0"
@@ -30,7 +30,6 @@
             }
         },
         "markdown.previewScripts": [
-            "./src/data.js",
             "./src/duplexLinksRenderer.js"
         ],
         "markdown.markdownItPlugins": true,
@@ -69,6 +68,7 @@
         "katex": "^0.12.0",
         "markdown-it": "^11.0.0",
         "markdown-it-codepen": "^1.0.1",
+        "markdown-it-mermaid": "^0.2.5",
         "markdown-it-texmath": "^0.7.1",
         "throttle-debounce": "^2.2.1"
     }

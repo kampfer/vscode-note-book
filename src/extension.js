@@ -3,6 +3,8 @@
 const vscode = require('vscode');
 const path = require('path');
 const fs = require('fs');
+const markdownItMermaid = require('markdown-it-mermaid');
+const markdownItCodepen = require('markdown-it-codepen');
 const NoteBook = require('./NoteBook');
 const duplexLinkPlugin = require('./markdown-it-duplex-link');
 const utils = require('./utils');
@@ -126,7 +128,8 @@ function activate(context) {
     return {
         extendMarkdownIt(md) {
 
-            return md.use(require('markdown-it-codepen'))
+            return md.use(markdownItCodepen)
+                .use(markdownItMermaid)
                 .use(duplexLinkPlugin(noteBook, true));
 
         }
