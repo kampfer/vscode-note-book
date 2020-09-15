@@ -61,15 +61,15 @@
         "publish": "vsce package & vsce publish"
     },
     "devDependencies": {
-        "jest": "^26.1.0"
+        "jest": "^26.4.2"
     },
     "dependencies": {
-        "highlight.js": "^10.1.1",
+        "highlight.js": "^10.2.0",
         "katex": "^0.12.0",
-        "markdown-it": "^11.0.0",
+        "markdown-it": "^11.0.1",
         "markdown-it-codepen": "^1.0.1",
         "markdown-it-mermaid": "^0.2.5",
-        "markdown-it-texmath": "^0.7.1",
-        "throttle-debounce": "^2.2.1"
+        "markdown-it-texmath": "^0.7.2",
+        "throttle-debounce": "^2.3.0"
     }
 }
