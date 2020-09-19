@@ -44,6 +44,7 @@ function linkArc(d) {
     `;
 }
 
+// TODO 效率不高，待优化
 function findRelatedNodesAndLinks(links, id) {
 
     function find(links, id, direction, result) {
@@ -54,7 +55,7 @@ function findRelatedNodesAndLinks(links, id) {
 
             if (direction === 'up') {
 
-                if (link.target.id === id) {
+                if (link.target.id === id && result.relatedLinks.indexOf(i) < 0) {
 
                     result.relatedLinks.push(i);
                     find(links, link.source.id, direction, result);
@@ -63,7 +64,7 @@ function findRelatedNodesAndLinks(links, id) {
 
             } else if (direction === 'down') {
 
-                if (link.source.id === id) {
+                if (link.source.id === id && result.relatedLinks.indexOf(i) < 0) {
 
                     result.relatedLinks.push(i);
                     find(links, link.target.id, direction, result);
