@@ -5,6 +5,7 @@ const utils = require('./utils');
 const markdownItCodepen = require('markdown-it-codepen');
 const markdownItDuplexLink = require('./markdown-it-duplex-link');
 const markdownItTexmath = require('markdown-it-texmath');
+const markdownItMermaid = require('markdown-it-mermaid-plugin');
 const path = require('path');
 const hljs = require('highlight.js');
 
@@ -39,6 +40,7 @@ class NoteView extends EventEmitter {
         });
         md.use(markdownItCodepen)
             .use(markdownItDuplexLink(noteBook, true))
+            .use(markdownItMermaid)
             .use(markdownItTexmath, {
                 engine: require('katex'),
                 delimiters: 'julia',
@@ -155,8 +157,10 @@ class NoteView extends EventEmitter {
 
     getScripts() {
         return [
+            '<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>',
+            '<script>mermaid.initialize({startOnLoad:true});</script>',
             `<script src="${this.asWebviewUri(path.join(__dirname, 'noteRenderer.js'))}" charset="UTF-8"></script>`
-        ].join('/n');
+        ].join('\n');
     }
 
     getWebviewContent(note) {

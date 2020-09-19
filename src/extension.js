@@ -3,7 +3,7 @@
 const vscode = require('vscode');
 const path = require('path');
 const fs = require('fs');
-const markdownItMermaid = require('markdown-it-mermaid');
+const markdownItMermaid = require('markdown-it-mermaid-plugin');
 const markdownItCodepen = require('markdown-it-codepen');
 const NoteBook = require('./NoteBook');
 const duplexLinkPlugin = require('./markdown-it-duplex-link');
@@ -130,6 +130,11 @@ function activate(context) {
 
             return md.use(markdownItCodepen)
                 .use(markdownItMermaid)
+                .use(markdownItTexmath, {
+                    engine: require('katex'),
+                    delimiters: 'julia',
+                    katexOptions: { macros: { "\\RR": "\\mathbb{R}" } }
+                })
                 .use(duplexLinkPlugin(noteBook, true));
 
         }
@@ -137,17 +142,17 @@ function activate(context) {
 
 }
 
-const getCurrentDocument = function () {
+// const getCurrentDocument = function () {
 
-    if (vscode.window.activeTextEditor) {
+//     if (vscode.window.activeTextEditor) {
 
-        return vscode.window.activeTextEditor.document;
+//         return vscode.window.activeTextEditor.document;
 
-    }
+//     }
 
-    return null;
+//     return null;
 
-};
+// };
 
 const getNoteName = function (fsPath) {
 
