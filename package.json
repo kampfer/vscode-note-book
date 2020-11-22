@@ -29,9 +29,7 @@
                 }
             }
         },
-        "markdown.previewScripts": [
-            "./src/duplexLinksRenderer.js"
-        ],
+        "markdown.previewScripts": [],
         "markdown.markdownItPlugins": true,
         "commands": [
             {
