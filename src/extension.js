@@ -9,6 +9,8 @@ const NoteBook = require('./NoteBook');
 const duplexLinkPlugin = require('./markdown-it-duplex-link');
 const utils = require('./utils');
 const NoteBookView = require('./NoteBookView');
+const markdownItTexmath = require('markdown-it-texmath');
+const katex = require('katex');
 
 const extensionName = 'vscode-note-book';
 
@@ -130,12 +132,12 @@ function activate(context) {
 
             return md.use(markdownItCodepen)
                 .use(markdownItMermaid)
+                .use(duplexLinkPlugin(noteBook, true))
                 .use(markdownItTexmath, {
-                    engine: require('katex'),
+                    engine: katex,
                     delimiters: 'julia',
-                    katexOptions: { macros: { "\\RR": "\\mathbb{R}" } }
-                })
-                .use(duplexLinkPlugin(noteBook, true));
+                    katexOptions: { macros: { '\\RR': '\\mathbb{R}' } }
+                });
 
         }
     };
