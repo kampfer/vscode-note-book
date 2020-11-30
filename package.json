@@ -30,12 +30,10 @@
             }
         },
         "markdown.previewStyles": [
-            "./node_modules/katex/dist/katex.min.css",
-            "./node_modules/markdown-it-texmath/css/texmath.css",
-            "./node_modules/github-markdown-css/github-markdown.css"
+            "./dist/note.css"
         ],
         "markdown.previewScripts": [
-            "./node_modules/mermaid/dist/mermaid.min.js"
+            "./dist/note.js"
         ],
         "markdown.markdownItPlugins": true,
         "commands": [
@@ -66,7 +64,11 @@
         "publish": "vsce package & vsce publish"
     },
     "devDependencies": {
-        "jest": "^26.1.0"
+        "css-loader": "^5.0.1",
+        "file-loader": "^6.2.0",
+        "jest": "^26.1.0",
+        "mini-css-extract-plugin": "^1.3.1",
+        "webpack": "^5.9.0"
     },
     "dependencies": {
         "d3": "^6.2.0",

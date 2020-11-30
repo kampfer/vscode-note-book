@@ -1,5 +1,7 @@
 // document.body.innerHTML = (new Date()).toString();
 
+import * as d3 from 'd3';
+
 const vscode = acquireVsCodeApi();
 
 const types = ['downLink', 'upLink'];
@@ -13,19 +15,19 @@ let rootElem, linkElems, nodeElems, circleElems, links, nodes;
 
 const drag = simulation => {
 
-    function dragstarted(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+    function dragstarted(e, d) {
+        if (!e.active) simulation.alphaTarget(0.3).restart();
         d.fx = d.x;
         d.fy = d.y;
     }
 
-    function dragged(d) {
-        d.fx = d3.event.x;
-        d.fy = d3.event.y;
+    function dragged(e, d) {
+        d.fx = e.x;
+        d.fy = e.y;
     }
 
-    function dragended(d) {
-        if (!d3.event.active) simulation.alphaTarget(0);
+    function dragended(e, d) {
+        if (!e.active) simulation.alphaTarget(0);
         d.fx = null;
         d.fy = null;
     }
@@ -141,15 +143,15 @@ function renderNoteBook(data) {
         .join("g")
         .call(drag(simulation));
 
-    node.on('click', ({ id }) => {
+    node.on('click', (e, { id }) => {
 
         vscode.postMessage({
             command: 'selectNote',
             data: { id }
         });
 
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
+        e.preventDefault();
+        e.stopPropagation();
 
     });
 

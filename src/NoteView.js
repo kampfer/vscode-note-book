@@ -144,11 +144,7 @@ class NoteView extends EventEmitter {
         const nodeModulesPath = path.join(__dirname, '../node_modules');
 
         styles.push(
-            `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, 'vscode-github-markdown-preview-style-master/base.css'))}">`,
-            `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, 'vscode-github-markdown-preview-style-master/github-markdown.css'))}">`,
-            `<link rel="stylesheet" href="${this.asWebviewUri(path.join(nodeModulesPath, 'highlight.js/styles/github.css'))}">`,
-            `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">`,
-            `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markdown-it-texmath/css/texmath.min.css">`,
+            `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, '../dist/note.css'))}">`
         );
 
         return styles.join('\n');
@@ -157,9 +153,7 @@ class NoteView extends EventEmitter {
 
     getScripts() {
         return [
-            '<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>',
-            '<script>mermaid.initialize({startOnLoad:true});</script>',
-            `<script src="${this.asWebviewUri(path.join(__dirname, 'noteRenderer.js'))}" charset="UTF-8"></script>`
+            `<script src="${this.asWebviewUri(path.join(__dirname, '../note.js'))}" charset="UTF-8"></script>`
         ].join('\n');
     }
 

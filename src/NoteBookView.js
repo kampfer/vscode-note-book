@@ -77,12 +77,7 @@ class NoteBookView {
     getScripts(panel) {
 
         return [
-            vscode.Uri.file(
-                path.join(this.extensionContext.extensionPath, 'src', 'd3.js')
-            ),
-            vscode.Uri.file(
-                path.join(this.extensionContext.extensionPath, 'src', 'noteBookRenderer.js')
-            ),
+            vscode.Uri.file(path.join(__dirname, '../dist/notebook.js')),
         ].map(src => `<script src="${panel.webview.asWebviewUri(src)}" charset="UTF-8"></script>`).join('\n');
 
     }

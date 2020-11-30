@@ -1,3 +1,9 @@
+import './note.css';
+
+import mermaid from 'mermaid';
+
+mermaid.initialize({startOnLoad:true});
+
 const vscode = acquireVsCodeApi();
 
 window.addEventListener('message', event => {
