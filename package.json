@@ -31,7 +31,8 @@
         },
         "markdown.previewStyles": [
             "./node_modules/katex/dist/katex.min.css",
-            "./node_modules/markdown-it-texmath/css/texmath.css"
+            "./node_modules/markdown-it-texmath/css/texmath.css",
+            "./node_modules/github-markdown-css/github-markdown.css"
         ],
         "markdown.previewScripts": [
             "./node_modules/mermaid/dist/mermaid.min.js"
@@ -68,6 +69,8 @@
         "jest": "^26.1.0"
     },
     "dependencies": {
+        "d3": "^6.2.0",
+        "github-markdown-css": "^4.0.0",
         "highlight.js": "^10.1.1",
         "katex": "^0.12.0",
         "markdown-it": "^11.0.0",
