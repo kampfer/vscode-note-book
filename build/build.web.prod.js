@@ -1,32 +1,7 @@
 const webpack = require('webpack');
-const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const config = Object.assign({ mode: 'production' }, require('./webpack.config.web'));
 
-const compiler = webpack({
-    mode: 'production',
-    entry: {
-        note: path.join(__dirname, '../src/renderer/note'),
-        notebook: path.join(__dirname, '../src/renderer/notebook')
-    },
-    output: {
-        publicPath: '',
-        path: path.join(__dirname, '../dist'),
-        filename: '[name].js'
-    },
-    plugins: [new MiniCssExtractPlugin()],
-    module: {
-        rules: [
-            {
-                test: /\.css$/i,
-                use: [MiniCssExtractPlugin.loader, 'css-loader'],
-            },
-            {
-                test:/\.(woff|woff2|eot|otf|ttf)$/,
-                use:'file-loader'
-            }
-        ],
-    },
-});
+const compiler = webpack(config);
 
 compiler.run((err, stats) => {
     if (err) {
@@ -37,5 +12,5 @@ compiler.run((err, stats) => {
         return;
     }
     
-    console.log(stats.toJson('minimal'));
+    console.log(stats.toString('normal'));
 });

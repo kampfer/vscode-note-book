@@ -1,32 +1,7 @@
 const webpack = require('webpack');
-const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const config = Object.assign({ mode: 'development' }, require('./webpack.config.web'));
 
-const compiler = webpack({
-    mode: 'development',
-    entry: {
-        note: path.join(__dirname, '../src/renderer/note'),
-        notebook: path.join(__dirname, '../src/renderer/notebook')
-    },
-    output: {
-        publicPath: '',
-        path: path.join(__dirname, '../dist'),
-        filename: '[name].js'
-    },
-    plugins: [new MiniCssExtractPlugin()],
-    module: {
-        rules: [
-            {
-                test: /\.css$/i,
-                use: [MiniCssExtractPlugin.loader, 'css-loader'],
-            },
-            {
-                test:/\.(woff|woff2|eot|otf|ttf)$/,
-                use:'file-loader'
-            }
-        ],
-    },
-});
+const compiler = webpack(config);
 
 compiler.watch({
     aggregateTimeout: 300
@@ -39,5 +14,5 @@ compiler.watch({
         return;
     }
     
-    console.log(stats.toJson('minimal'));
+    console.log(stats.toString('normal'));
 });
