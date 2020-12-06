@@ -60,6 +60,7 @@
         }
     },
     "scripts": {
+        "dev:web": "node build/build.web.dev.js",
         "test": "jest",
         "publish": "vsce package & vsce publish"
     },

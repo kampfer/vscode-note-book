@@ -153,7 +153,7 @@ class NoteView extends EventEmitter {
 
     getScripts() {
         return [
-            `<script src="${this.asWebviewUri(path.join(__dirname, '../note.js'))}" charset="UTF-8"></script>`
+            `<script src="${this.asWebviewUri(path.join(__dirname, '../dist/note.js'))}" charset="UTF-8"></script>`
         ].join('\n');
     }
 

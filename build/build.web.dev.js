@@ -29,8 +29,7 @@ const compiler = webpack({
 });
 
 const watching = compiler.watch({
-    aggregateTimeout: 300,
-    poll: undefined
+    aggregateTimeout: 300
 }, (err, stats) => {
     if (err) {
         console.error(err.stack || err);

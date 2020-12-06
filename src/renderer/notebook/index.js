@@ -204,7 +204,7 @@ function resizeView() {
 
     const width = window.innerWidth;
     const height = window.innerHeight;
-    rootElem.attr("viewBox", [-width / 2, -height / 2, width, height]);
+    if (rootElem) rootElem.attr("viewBox", [-width / 2, -height / 2, width, height]);
 
 }
 
