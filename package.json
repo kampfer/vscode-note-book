@@ -62,7 +62,7 @@
     "scripts": {
         "dev:web": "node build/build.web.dev.js",
         "test": "jest",
-        "publish": "vsce package & vsce publish"
+        "publish": "node build/build.web.prod.js & vsce package & vsce publish"
     },
     "devDependencies": {
         "css-loader": "^5.0.1",

@@ -3,7 +3,7 @@ const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const compiler = webpack({
-    mode: 'development',
+    mode: 'production',
     entry: {
         note: path.join(__dirname, '../src/renderer/note'),
         notebook: path.join(__dirname, '../src/renderer/notebook')
@@ -28,9 +28,7 @@ const compiler = webpack({
     },
 });
 
-compiler.watch({
-    aggregateTimeout: 300
-}, (err, stats) => {
+compiler.run((err, stats) => {
     if (err) {
         console.error(err.stack || err);
         if (err.details) {
