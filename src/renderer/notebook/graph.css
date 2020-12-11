@@ -1,0 +1,85 @@
+circle.outer-circle {
+    stroke: #6771DC;
+    fill: #fff;
+}
+
+circle.inner-circle {
+    fill: #6771DC;
+}
+
+image.node-image {
+    /* width: 20;
+    height: 20; */
+}
+
+.node-label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #2D374B;
+}
+
+.edge {
+    stroke: #66B7DC;
+}
+
+.edge-label {
+    color: #66B7DC;
+    stroke: #66B7DC;
+}
+
+.virtual-node    circle.outer-circle {
+    stroke: #F3C300;
+}
+.virtual-node    circle.inner-circle {
+    fill: #F3C300;
+}
+
+.hasSelected    .node-group,
+.hasSelected    .edge,
+.hasSelected    .edge-label {
+    opacity: 0.3;
+}
+
+.node-group.selected {
+    opacity: 1;
+}
+
+.node-group.activated .outer-circle,
+.node-group.activated .inner-circle,
+.node-group.activated .node-image {
+    animation: scale 0.2s forwards;
+}
+.node-group.activated .node-label {
+    transform: translateY(15px);
+}
+
+.edge.selected {
+    opacity: 1;
+}
+
+.edge-label.selected {
+    opacity: 1;
+}
+
+marker.default {
+    fill: #66B7DC;
+}
+
+marker.selected {
+    fill: #66B7DC;
+}
+
+.edge.hidden,
+.node-group.hidden,
+.edge-label.hidden {
+    display: none;
+}
+
+@keyframes scale {
+    from {
+        transform: scale(1);
+    }
+    to {
+        transform: scale(1.4705882352941178);
+    }
+}
