@@ -44,7 +44,7 @@ function linkArc(d) {
         sourceX = intersectSourcePoints[1][0];
         sourceY = intersectSourcePoints[1][1];
     }
-    
+
     const intersectTargetPoints = math.getIntersectPointBetweenCircleAndLine(startX, startY, endX, endY, endX, endY, targetR);
     if (math.onSegement([startX, startY], [endX, endY], intersectTargetPoints[0])) {
         targetX = intersectTargetPoints[0][0];
@@ -299,7 +299,7 @@ export default class NetworkGraph {
 
         const selectedNodes = this.nodeSelection.filter(d => d.selected);
         const selectedEdges = this.edgeSelection.filter(d => d.selected);
-        
+
         this.gSelection.classed('hasSelected', selectedNodes.size() > 0 || selectedEdges.size() > 0);
 
         // 选中的元素放在最后，这样展示时会在最上层
@@ -311,7 +311,7 @@ export default class NetworkGraph {
             this.forceSimulation.alpha(1);
             this.forceSimulation.restart();
         }
-        
+
     }
 
     // 初始化时source是字符串，之后d3将它替换为对象
@@ -377,7 +377,7 @@ export default class NetworkGraph {
             edge.sameMiddleLink = edge.sameUneven === true && Math.ceil(edge.sameTotalHalf) === edge.sameIndex;
             edge.sameLowerHalf = edge.sameIndex > edge.sameTotalHalf;
             edge.sameIndexCorrected = edge.sameLowerHalf ? (Math.ceil(edge.sameTotalHalf) - edge.sameIndex) : edge.sameIndex;
-            
+
         });
 
         return data;
@@ -400,7 +400,7 @@ export default class NetworkGraph {
 
         nodeSelection.attr('id', d => d.id)
             .classed('node-group', true);
-        
+
         if (this.useDrag && this.d3Drag) nodeSelection.call(this.d3Drag);
 
         return nodeSelection;
@@ -410,21 +410,22 @@ export default class NetworkGraph {
 
 NetworkGraph.nodeConstrutors = {
     default: {
-        
+
         create(datum, graph) {
             // 必须手动绑定数据
-            const groupSelection = d3.create('g').datum(datum);
+            const groupSelection = d3.create('svg:g').datum(datum);
 
             groupSelection.classed('virtual-node', datum.virtual);
 
-            groupSelection.append('svg:circle')
+            groupSelection.append('circle')
                 .classed('outer-circle', true)
                 .attr('r', 34);
-            groupSelection.append('svg:circle')
+
+            groupSelection.append('circle')
                 .classed('inner-circle', true)
                 .attr('r', 30);
 
-            groupSelection.append('svg:image')
+            groupSelection.append('image')
                 .classed('node-image', true)
                 .attr('clip-path', 'url(#circle-image)');
 
@@ -433,13 +434,13 @@ NetworkGraph.nodeConstrutors = {
 
             return groupSelection;
         },
-        update(selection) {}
+        update(selection) { }
     }
 };
 
 NetworkGraph.edgeConstructors = {
     default: {
-        create() {},
-        update() {}
+        create() { },
+        update() { }
     }
 };
