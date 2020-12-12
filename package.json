@@ -1,6 +1,6 @@
 {
     "name": "vscode-note-book",
-    "author": "kampfer.liao@foxmail.com",
+    "author": "mr_liaowei@163.com",
     "publisher": "kampfer",
     "displayName": "vscode-note-book",
     "description": "vscode-note-book",
@@ -29,8 +29,11 @@
                 }
             }
         },
+        "markdown.previewStyles": [
+            "./dist/note.css"
+        ],
         "markdown.previewScripts": [
-            "./src/duplexLinksRenderer.js"
+            "./dist/note.js"
         ],
         "markdown.markdownItPlugins": true,
         "commands": [
@@ -57,19 +60,28 @@
         }
     },
     "scripts": {
+        "dev:web": "node build/build.web.dev.js",
         "test": "jest",
-        "publish": "vsce package & vsce publish"
+        "publish": "node build/build.web.prod.js & vsce package & vsce publish"
     },
     "devDependencies": {
-        "jest": "^26.4.2"
+        "clean-webpack-plugin": "^3.0.0",
+        "css-loader": "^5.0.1",
+        "file-loader": "^6.2.0",
+        "jest": "^26.1.0",
+        "mini-css-extract-plugin": "^1.3.1",
+        "webpack": "^5.9.0"
     },
     "dependencies": {
-        "highlight.js": "^10.2.0",
+        "d3": "^6.2.0",
+        "github-markdown-css": "^4.0.0",
+        "highlight.js": "^10.4.1",
         "katex": "^0.12.0",
-        "markdown-it": "^11.0.1",
+        "markdown-it": "^11.0.0",
         "markdown-it-codepen": "^1.0.1",
-        "markdown-it-mermaid": "^0.2.5",
-        "markdown-it-texmath": "^0.7.2",
-        "throttle-debounce": "^2.3.0"
+        "markdown-it-mermaid-plugin": "^0.1.0",
+        "markdown-it-texmath": "^0.7.1",
+        "mermaid": "^8.8.3",
+        "throttle-debounce": "^2.2.1"
     }
 }

@@ -5,6 +5,7 @@ const utils = require('./utils');
 const markdownItCodepen = require('markdown-it-codepen');
 const markdownItDuplexLink = require('./markdown-it-duplex-link');
 const markdownItTexmath = require('markdown-it-texmath');
+const markdownItMermaid = require('markdown-it-mermaid-plugin');
 const path = require('path');
 const hljs = require('highlight.js');
 
@@ -39,6 +40,7 @@ class NoteView extends EventEmitter {
         });
         md.use(markdownItCodepen)
             .use(markdownItDuplexLink(noteBook, true))
+            .use(markdownItMermaid)
             .use(markdownItTexmath, {
                 engine: require('katex'),
                 delimiters: 'julia',
@@ -142,11 +144,7 @@ class NoteView extends EventEmitter {
         const nodeModulesPath = path.join(__dirname, '../node_modules');
 
         styles.push(
-            `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, 'vscode-github-markdown-preview-style-master/base.css'))}">`,
-            `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, 'vscode-github-markdown-preview-style-master/github-markdown.css'))}">`,
-            `<link rel="stylesheet" href="${this.asWebviewUri(path.join(nodeModulesPath, 'highlight.js/styles/github.css'))}">`,
-            `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">`,
-            `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markdown-it-texmath/css/texmath.min.css">`,
+            `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, '../dist/note.css'))}">`
         );
 
         return styles.join('\n');
@@ -155,8 +153,8 @@ class NoteView extends EventEmitter {
 
     getScripts() {
         return [
-            `<script src="${this.asWebviewUri(path.join(__dirname, 'noteRenderer.js'))}" charset="UTF-8"></script>`
-        ].join('/n');
+            `<script src="${this.asWebviewUri(path.join(__dirname, '../dist/note.js'))}" charset="UTF-8"></script>`
+        ].join('\n');
     }
 
     getWebviewContent(note) {

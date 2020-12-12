@@ -75,16 +75,15 @@ class NoteBookView {
     }
 
     getScripts(panel) {
-
         return [
-            vscode.Uri.file(
-                path.join(this.extensionContext.extensionPath, 'src', 'd3.js')
-            ),
-            vscode.Uri.file(
-                path.join(this.extensionContext.extensionPath, 'src', 'noteBookRenderer.js')
-            ),
+            vscode.Uri.file(path.join(__dirname, '../dist/notebook.js')),
         ].map(src => `<script src="${panel.webview.asWebviewUri(src)}" charset="UTF-8"></script>`).join('\n');
+    }
 
+    getStyles() {
+        return [
+            `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, '../dist/notebook.css'))}">`
+        ].join('\n');
     }
 
     getWebviewContent() {
@@ -99,6 +98,7 @@ class NoteBookView {
                     ${csp}
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Note Book View</title>
+                    ${this.getStyles()}
                 </head>
                 <body>
                     ${this.getScripts(panel)}
@@ -158,6 +158,12 @@ class NoteBookView {
 
         this.noteBook.off('store', this.onDidStore);
         if (this._noteView) this._noteView.off('selectNote');
+
+    }
+
+    asWebviewUri(uri) {
+
+        return this._panel.webview.asWebviewUri(vscode.Uri.file(uri));
 
     }
 
