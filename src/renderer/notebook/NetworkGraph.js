@@ -111,31 +111,6 @@ export default class NetworkGraph {
             .attr('width', width)
             .attr('height', height);
 
-        const defsSelection = svgSelection.append('defs');
-
-        // 圆形裁剪路径
-        defsSelection.append('clipPath')
-            .attr('id', 'circle-image')
-            .append('circle')
-            .attr('cx', 0)
-            .attr('cy', 0)
-            .attr('r', this.defaultNode.size);
-
-        defsSelection.selectAll('marker.arrow')
-            .data(['default', 'selected'])
-            .join('marker')
-                .attr('id', d => `arrow-${d}`)
-                .attr('class', d => `arrow ${d}`)
-                .attr('viewbox', '0 -5 10 10')
-                .attr('refX', 0)
-                .attr('refY', 0)
-                .attr('markerWidth', 6)
-                .attr('markerHeight', 6)
-                .attr('overflow', 'visible')
-                .attr('orient', 'auto-start-reverse')
-                    .append('svg:path')
-                        .attr('d', 'M 0,-5 L 10 ,0 L 0,5');
-
         const simulation = d3.forceSimulation();
         const linkForce = d3.forceLink().id(d => d.id).distance(200);
 
@@ -151,43 +126,34 @@ export default class NetworkGraph {
             console.log('simulation tick');
 
             if (this.edgeSelection) {
-                this.edgeSelection.each(function (d) {
-                    const selection = d3.select(this);
-                    // 拖动点时保证箭头的指向正确
-                    if (d.target.x < d.source.x) {  // 反
-                        selection.attr('marker-start', d => `url(${new URL(`#arrow-${d.selected ? 'selected' : 'default'}`, location)}`);
-                        selection.attr('marker-end', 'none');
-                    } else {    // 正
-                        selection.attr('marker-start', 'none');
-                        selection.attr('marker-end', d => `url(${new URL(`#arrow-${d.selected ? 'selected' : 'default'}`, location)}`);
-                    }
-                });
-                this.edgeSelection.attr('d', linkArc);
+                this.edgeSelection.call(this.updateEdges);
             }
 
             if (this.nodeSelection) {
-                this.nodeSelection.attr('transform', d => `translate(${d.x}, ${d.y})`);
+                this.nodeSelection.call(this.updateNodes);
             }
 
         };
 
         simulation.on('tick', handleTick);
 
-        this.d3Drag = d3.drag()
-            .on('start', (event, d) => {
-                if (!event.active) simulation.alphaTarget(0.3).restart();   // 重新激活force tick
-                d.fx = d.x;
-                d.fy = d.y;
-            })
-            .on('drag', (event, d) => {
-                d.fx = event.x;
-                d.fy = event.y;
-            })
-            .on('end', (event, d) => {
-                if (!event.active) simulation.alphaTarget(0);   // 动画可以停止
-                d.fx = null;
-                d.fy = null;
-            });
+        if (this.useDrag) {
+            this.d3Drag = d3.drag()
+                .on('start', (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();   // 重新激活force tick
+                    d.fx = d.x;
+                    d.fy = d.y;
+                })
+                .on('drag', (event, d) => {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                })
+                .on('end', (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0);   // 动画可以停止
+                    d.fx = null;
+                    d.fy = null;
+                });
+        }
 
         // 力导布局
         this.forceSimulation = simulation;
@@ -195,7 +161,7 @@ export default class NetworkGraph {
 
         // d3 selection
         this.svgSelection = svgSelection;
-        this.defsSelection = defsSelection;
+        this.defsSelection = svgSelection.append('defs');
         this.gSelection = svgSelection.append('g');
         this.nodeSelection = null;
         this.edgeSelection = null;
@@ -234,64 +200,21 @@ export default class NetworkGraph {
         this.forceSimulation.nodes(nodes);
         this.linkForce.links(edges);
 
-        // 边
-        this.gSelection
-            .selectAll('path.edge')
+        this.gSelection.selectAll('path.edge')
             .data(edges, d => d.id)
-            .join(enter => {
-                const selection = enter.append('path');
-                selection.classed('edge', true)
-                    .attr('id', (d, i) => `edge-${i}`)
-                    .attr('fill', 'transparent')
-                return selection;
-            })
+            .join(enter => this.createEdges(enter))
             .classed('selected', d => d.selected)
-            .classed('hidden', d => d.visible === false)
-            .attr('d', linkArc);
-
-        // 边的label
-        this.gSelection
-            .selectAll('text.edge-label')
-            .data(edges, d => d.id)
-            .join(enter => {
-                const selection = enter.append('text');
-                selection.classed('edge-label', true)
-                    .append('textPath')
-                        .attr('xlink:href', (d, i) => `#edge-${i}`)
-                        .attr('text-anchor', 'middle')
-                        .attr('startOffset', '50%');
-                return selection;
-            })
-            .classed('selected', d => d.selected)
-            .classed('hidden', d => d.visible === false)
-            .selectChild('textPath')
-                .text(d => `关系：${d.label}`);
+            .classed('hidden', d => d.visible === false);
 
         // 节点
-        const nodeSelection = this.gSelection
-            // 约定所有节点都拥有class='.node-group'
-            .selectAll('.node-group')
+        // 约定所有节点都拥有class='.node-group'
+        this.gSelection.selectAll('.node-group')
             // 必须给key，否则改变元素顺序时，展示会错乱
             .data(nodes, d => d.id)
-            .join(enter => this.createNode(enter))
+            .join(enter => this.createNodes(enter))
             .classed('selected', d => d.selected)
             .classed('activated', d => d.activated)
-            .classed('hidden', d => d.visible === false)
-            .attr('transform', d => `translate(${d.x}, ${d.y})`);
-
-        // 设置被修改和新添加的节点的样式
-        nodeSelection.selectChildren('image')
-            .attr('xlink:href', d => d.image)
-            .attr('width', d => d.imageType === 'original' ? 30 : this.defaultNode.size * 2)
-            .attr('height', d => d.imageType === 'original' ? 30 : this.defaultNode.size * 2)
-            .attr('x', d => d.imageType === 'original' ? -15 : -this.defaultNode.size)
-            .attr('y', d => d.imageType === 'original' ? -15 : -this.defaultNode.size);
-
-        nodeSelection.selectChildren('text')
-            .attr('x', 0)
-            .attr('y', d => 34 + 16)
-            .attr('text-anchor', 'middle')
-            .text(d => d.id);
+            .classed('hidden', d => d.visible === false);
 
         this.edgeSelection = this.gSelection.selectAll('path.edge');
         this.nodeSelection = this.gSelection.selectAll('g.node-group');
@@ -383,15 +306,7 @@ export default class NetworkGraph {
         return data;
     }
 
-    registerNode(nodeType, config) {
-        this._customNodeTypes[nodeType] = config;
-    }
-
-    registerEdge(edgeType, config) {
-        this._customNodeTypes[edgeType] = config;
-    }
-
-    createNode(enter) {
+    createNodes(enter) {
         const nodeSelection = enter.append(d => {
             const constructor = NetworkGraph.getNodeConstructor(d.type);
             const selection = constructor.create(d, this);
@@ -406,41 +321,114 @@ export default class NetworkGraph {
         return nodeSelection;
     }
 
+    updateNodes(nodeSelection) {
+        const graph = this;
+        // 这里对每个节点单独执行更新操作
+        // TODO: 先筛选出每类节点，然后批量更新每类节点，会不会更快？
+        nodeSelection.each(function(d) {
+            const constructor = NetworkGraph.getNodeConstructor(d.type);
+            constructor.update.call(this, d, graph);
+        });
+    }
+
+    createEdges(enter) {
+        const edgeSelection = enter.append(d => {
+            const constructor = NetworkGraph.getEdgeConstructor(d.type);
+            const selection = constructor.create(d, this);
+            return selection.node();
+        });
+        return edgeSelection;
+    }
+
+    updateEdges(edgeSelection) {
+        const graph = this;
+        edgeSelection.each(function(d) {
+            const constructor = NetworkGraph.getEdgeConstructor(d.type);
+            constructor.update.call(this, d, graph);
+        });
+    }
+
 }
 
 NetworkGraph.nodeConstrutors = {
     default: {
-
+        // TODO：create是否一定需要返回一个node，是否可以直接在svg添加标签？
         create(datum, graph) {
             // 必须手动绑定数据
             const groupSelection = d3.create('svg:g').datum(datum);
 
-            groupSelection.classed('virtual-node', datum.virtual);
-
             groupSelection.append('circle')
-                .classed('outer-circle', true)
-                .attr('r', 34);
-
-            groupSelection.append('circle')
-                .classed('inner-circle', true)
-                .attr('r', 30);
-
-            groupSelection.append('image')
-                .classed('node-image', true)
-                .attr('clip-path', 'url(#circle-image)');
+                .classed('node', true)
+                .attr('r', 15);
 
             groupSelection.append('text')
+                .text(datum.label)
+                .attr('x', 0)
+                .attr('y', 15 + 16)
+                .attr('text-anchor', 'middle')
                 .classed('node-label', true);
 
             return groupSelection;
         },
-        update(selection) { }
+        update(datum, graph) {
+            d3.select(this).attr('transform', d => `translate(${d.x}, ${d.y})`);
+        }
     }
 };
 
 NetworkGraph.edgeConstructors = {
     default: {
-        create() { },
-        update() { }
+        // TODO：create是否一定需要返回一个node，是否可以直接在svg添加标签？
+        create(datum, graph) {
+            const defsSelection = graph.defsSelection;
+            const markerSelection = defsSelection.selectAll('marker.arrow');
+
+            if (markerSelection.empty()) {
+                markerSelection.data(['default', 'selected'])
+                    .join('marker')
+                    .attr('id', d => `arrow-${d}`)
+                    .attr('class', d => `arrow ${d}`)
+                    .attr('viewbox', '0 -5 10 10')
+                    .attr('refX', 0)
+                    .attr('refY', 0)
+                    .attr('markerWidth', 6)
+                    .attr('markerHeight', 6)
+                    .attr('overflow', 'visible')
+                    .attr('orient', 'auto-start-reverse')
+                    .append('svg:path')
+                        .attr('d', 'M 0,-5 L 10 ,0 L 0,5');
+            }
+
+            const pathSelection = d3.create('svg:path').datum(datum);
+
+            pathSelection.classed('edge', true)
+                .attr('id', `edge-${datum.id}`)
+                .attr('fill', 'none');
+
+            // 直接在graph中添加边的label，因为create只能返回返回一个node
+            const textSelection = graph.gSelection.append('svg:text').datum(datum);
+
+            textSelection.classed('edge-label', true)
+                .classed('hidden', datum.visible === false)
+                .append('textPath')
+                    .text(`关系：${datum.label}`)
+                    .attr('xlink:href', `#edge-${datum.id}`)
+                    .attr('text-anchor', 'middle')
+                    .attr('startOffset', '50%');
+
+            return pathSelection;
+        },
+        update(datum, graph) {
+            const selection = d3.select(this);
+            // 拖动点时保证箭头的指向正确
+            if (datum.target.x < datum.source.x) {  // 反
+                selection.attr('marker-start', `url(${new URL(`#arrow-${datum.selected ? 'selected' : 'default'}`, location)}`);
+                selection.attr('marker-end', 'none');
+            } else {    // 正
+                selection.attr('marker-start', 'none');
+                selection.attr('marker-end', `url(${new URL(`#arrow-${datum.selected ? 'selected' : 'default'}`, location)}`);
+            }
+            selection.attr('d', linkArc);
+        }
     }
 };
