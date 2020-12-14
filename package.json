@@ -62,7 +62,8 @@
     "scripts": {
         "dev": "node build/build.dev.js",
         "test": "jest",
-        "publish": "node build/build.prod.js & vsce package & vsce publish"
+        "package": "node build/build.prod.js & vsce package",
+        "publish": "npm run package & vsce publish"
     },
     "devDependencies": {
         "clean-webpack-plugin": "^3.0.0",
