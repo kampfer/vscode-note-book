@@ -1,5 +1,5 @@
 // https://code.visualstudio.com/api/extension-guides/tree-view
-
+console.log('start');
 const vscode = require('vscode');
 const path = require('path');
 const fs = require('fs');
@@ -15,6 +15,8 @@ const katex = require('katex');
 const extensionName = 'vscode-note-book';
 
 function activate(context) {
+
+    console.log('activate vscode');
 
     // 通过配置控制插件是否生效
     if (!vscode.workspace.getConfiguration('NoteBook').get('enabled')) return;

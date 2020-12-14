@@ -1,11 +1,11 @@
 const webpack = require('webpack');
-const config = Object.assign({ mode: 'development' }, require('./webpack.config.web'));
+const configs = require('./webpack.config');
 
-const compiler = webpack(config);
+configs.forEach(d => d.mode = 'production');
 
-compiler.watch({
-    aggregateTimeout: 300
-}, (err, stats) => {
+const compiler = webpack(configs);
+
+compiler.run((err, stats) => {
     if (err) {
         console.error(err.stack || err);
         if (err.details) {

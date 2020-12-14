@@ -17,7 +17,7 @@
         "onCommand:vscode-note-book.scan",
         "onCommand:vscode-note-book.viewNoteBook"
     ],
-    "main": "./src/extension.js",
+    "main": "./dist/extension.js",
     "contributes": {
         "configuration": {
             "title": "NoteBook",
@@ -60,9 +60,9 @@
         }
     },
     "scripts": {
-        "dev:web": "node build/build.web.dev.js",
+        "dev": "node build/build.dev.js",
         "test": "jest",
-        "publish": "node build/build.web.prod.js & vsce package & vsce publish"
+        "publish": "node build/build.prod.js & vsce package & vsce publish"
     },
     "devDependencies": {
         "clean-webpack-plugin": "^3.0.0",
