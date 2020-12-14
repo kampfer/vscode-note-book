@@ -7,12 +7,6 @@ import './graph.css';
 
 const vscode = acquireVsCodeApi();
 
-const graph = new NetworkGraph({
-    container: 'body',
-    width: window.innerWidth,
-    height: window.innerHeight
-});
-
 NetworkGraph.registerNode('test', {
 
     create(datum, graph) {
@@ -114,6 +108,14 @@ window.addEventListener('message', event => {
             label: 'test',
             type: 'test',
             image: 'https://pic2.zhimg.com/80/v2-eb983559a5ebb774ea07cedf73288da8_720w.jpg',
+        });
+
+        // window加载完毕（load事件）时innerWidth、innerHeight可能等于0
+        // 放在messge事件的回调中才能取到正常的innerWidth、innerHeight
+        let graph = new NetworkGraph({
+            container: 'body',
+            width: window.innerWidth,
+            height: window.innerHeight
         });
 
         graph.render(data);
