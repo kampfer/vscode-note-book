@@ -1106,6 +1106,10 @@ section.eqno > span {
     text-align:right;
 }
 
+/*
+ * github-markdown-css
+ * https://github.com/sindresorhus/github-markdown-css#usage
+ */
 .markdown-body {
     box-sizing: border-box;
     min-width: 200px;
@@ -1120,6 +1124,7 @@ section.eqno > span {
     }
 }
 
+/* codepen样式 */
 .cp_embed_wrapper {
     margin-bottom: 16px;
 }

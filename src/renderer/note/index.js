@@ -2,7 +2,11 @@ import './note.css';
 
 import mermaid from 'mermaid';
 
+// 支持mermaid图
 mermaid.initialize({startOnLoad:true});
+
+// 支持github-markdown-css
+document.body.classList.add('markdown-body');
 
 const vscode = acquireVsCodeApi();
 

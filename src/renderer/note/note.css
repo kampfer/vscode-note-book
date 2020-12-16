@@ -3,6 +3,10 @@
 @import url("../../../node_modules/katex/dist/katex.min.css");
 @import url("../../../node_modules/markdown-it-texmath/css/texmath.css");
 
+/*
+ * github-markdown-css
+ * https://github.com/sindresorhus/github-markdown-css#usage
+ */
 .markdown-body {
     box-sizing: border-box;
     min-width: 200px;
@@ -17,6 +21,7 @@
     }
 }
 
+/* codepen样式 */
 .cp_embed_wrapper {
     margin-bottom: 16px;
 }
