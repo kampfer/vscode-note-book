@@ -3,7 +3,7 @@
 import * as d3 from 'd3';
 import NetworkGraph from './NetworkGraph';
 
-import './graph.css';
+import './notebook.css';
 
 const vscode = acquireVsCodeApi();
 

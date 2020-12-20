@@ -1,0 +1,20 @@
+.arrow {
+    fill: rgb(115, 115, 115);
+}
+
+.node {
+    fill: rgb(198, 229, 255);
+    stroke: rgb(91, 143, 249);
+}
+
+.node-label {
+    font-size: 14px;
+}
+
+.edge {
+    stroke: rgb(115, 115, 115);
+}
+
+.edge-label {
+    font-size: 14px;
+}
