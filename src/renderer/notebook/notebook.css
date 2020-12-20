@@ -18,3 +18,7 @@
 .edge-label {
     font-size: 14px;
 }
+
+.node-group.selected .node {
+    stroke-width: 2px;
+}

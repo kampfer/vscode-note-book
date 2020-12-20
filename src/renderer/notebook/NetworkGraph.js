@@ -1,32 +1,46 @@
 import * as d3 from 'd3';
+import EventEmitter from 'eventemitter3';
 import * as math from './math';
 
 import './graph.css';
 
-export default class NetworkGraph {
+export default class NetworkGraph extends EventEmitter {
+
+    static registerNode(nodeType, config) {
+        NetworkGraph.nodeConstrutors[nodeType] = config;
+    }
+
+    static registerEdge(edgeType, config) {
+        NetworkGraph.edgeConstructors[edgeType] = config;
+    }
+
+    static getNodeConstructor(nodeType) {
+        const constructor = NetworkGraph.nodeConstrutors[nodeType];
+        if (constructor) return constructor;
+        return NetworkGraph.nodeConstrutors.default;
+    }
+
+    static getEdgeConstructor(edgeType) {
+        const constructor = NetworkGraph.edgeConstructors[edgeType];
+        if (constructor) return constructor;
+        return NetworkGraph.edgeConstructors.default;
+    }
 
     constructor({
         container,
         width = 300,
         height = 150,
         useZoom = false,
-        useBrush = false,
+        useBrushSelect = false,
+        useClickSelect = false,
         useDrag = true,
-        defaultNode = {
-            size: 30,
-            style: {}
-        },
-        defaultEdge = {
-            style: {
-                stroke: '#66B7DC',
-            }
-        },
     } = {}) {
 
-        this.defaultEdge = defaultEdge;
-        this.defaultNode = defaultNode;
+        super();
+
         this.useZoom = useZoom;
-        this.useBrush = useBrush;
+        this.useBrushSelect = useBrushSelect;
+        this.useClickSelect = useClickSelect;
         this.useDrag = useDrag;
 
         let svgSelection;
@@ -55,16 +69,20 @@ export default class NetworkGraph {
             console.log('simulation tick');
 
             if (this.edgeSelection) {
-                this.edgeSelection.call(this.updateEdges);
+                this.edgeSelection.call(this._updateEdges);
             }
 
             if (this.nodeSelection) {
-                this.nodeSelection.call(this.updateNodes);
+                this.nodeSelection.call(this._updateNodes);
             }
 
         };
 
         simulation.on('tick', handleTick);
+
+        // 力导布局
+        this.forceSimulation = simulation;
+        this.linkForce = linkForce;
 
         if (this.useDrag) {
             this.d3Drag = d3.drag()
@@ -84,9 +102,7 @@ export default class NetworkGraph {
                 });
         }
 
-        // 力导布局
-        this.forceSimulation = simulation;
-        this.linkForce = linkForce;
+        this._handleClickAtNode = this._handleClickAtNode.bind(this);
 
         // d3 selection
         this.svgSelection = svgSelection;
@@ -98,40 +114,73 @@ export default class NetworkGraph {
 
     }
 
-    static registerNode(nodeType, config) {
-        NetworkGraph.nodeConstrutors[nodeType] = config;
-    }
+    setData(data) {
+        this.data = data;
 
-    static registerEdge(edgeType, config) {
-        NetworkGraph.edgeConstructors[edgeType] = config;
-    }
+        const { edges, nodes } = data;
+        const sames = {};
 
-    static getNodeConstructor(nodeType) {
-        const constructor = NetworkGraph.nodeConstrutors[nodeType];
-        if (constructor) return constructor;
-        return NetworkGraph.nodeConstrutors.default;
-    }
+        // 在最后添加假数据占位，避免调用d3.raise时移动了最后一个元素，导致d3.order不工作，边盖在点上
+        if (!this.fakeDataAppended) {
+            this.fakeDataAppended = true;
+            edges.push({
+                source: '__fake_source__',
+                target: '__fake_target__',
+                visible: false,
+            });
 
-    static getEdgeConstructor(edgeType) {
-        const constructor = NetworkGraph.edgeConstructors[edgeType];
-        if (constructor) return constructor;
-        return NetworkGraph.edgeConstructors.default;
+            nodes.push({
+                id: '__fake_source__',
+                visible: false
+            }, {
+                id: '__fake_target__',
+                visible: false
+            });
+        }
+
+        edges.forEach(edge => {
+
+            const sourceId = this._getSourceId(edge);
+            const targetId = this._getTargetId(edge);
+            let direction = `${sourceId}-${targetId}`;
+            if (sames[direction] === undefined) sames[direction] = 0;
+            edge.sameIndex = ++sames[direction];
+
+        });
+
+        edges.forEach((edge, i) => {
+
+            const sourceId = this._getSourceId(edge);
+            const targetId = this._getTargetId(edge);
+            const same = sames[`${sourceId}-${targetId}`] || 0;
+            const sameAlt = sames[`${targetId}-${sourceId}`] || 0;
+
+            edge.sameTotal = same + sameAlt;
+            edge.sameTotalHalf = edge.sameTotal / 2;
+            edge.sameUneven = edge.sameTotal % 2 !== 0;
+            edge.sameMiddleLink = edge.sameUneven === true && Math.ceil(edge.sameTotalHalf) === edge.sameIndex;
+            edge.sameLowerHalf = edge.sameIndex > edge.sameTotalHalf;
+            edge.sameIndexCorrected = edge.sameLowerHalf ? (Math.ceil(edge.sameTotalHalf) - edge.sameIndex) : edge.sameIndex;
+
+        });
+
+        return data;
     }
 
     render(data, {
         restartForce = true
     } = {}) {
 
-        const { nodes, edges } = this.parse(data);
+        const { nodes, edges } = this.setData(data);
 
-        this.forceSimulation.stop();
+        if (restartForce) this.forceSimulation.stop();
 
         this.forceSimulation.nodes(nodes);
         this.linkForce.links(edges);
 
         this.gSelection.selectAll('path.edge')
             .data(edges, d => d.id)
-            .join(enter => this.createEdges(enter))
+            .join(enter => this._createEdges(enter))
             .classed('selected', d => d.selected)
             .classed('hidden', d => d.visible === false);
 
@@ -140,7 +189,7 @@ export default class NetworkGraph {
         this.gSelection.selectAll('.node-group')
             // 必须给key，否则改变元素顺序时，展示会错乱
             .data(nodes, d => d.id)
-            .join(enter => this.createNodes(enter))
+            .join(enter => this._createNodes(enter))
             .classed('selected', d => d.selected)
             .classed('activated', d => d.activated)
             .classed('hidden', d => d.visible === false);
@@ -166,8 +215,35 @@ export default class NetworkGraph {
 
     }
 
+    rerender(...args) {
+        this.render(this.data, ...args);
+    }
+
+    selectNodes(ids) {
+        const { nodes } = this.data;
+        for(let node of nodes) {
+            if (ids.includes(node.id)) {
+                node.selected = true;
+            } else {
+                node.selected = false;
+            }
+        }
+        this.rerender({ restartForce: false });
+    }
+
+    clearSelect() {
+        const { nodes, edges } = this.data;
+        for(let node of nodes) {
+            node.selected = false;
+        }
+        for(let edge of edges) {
+            edge.selected = false;
+        }
+        this.rerender({ restartForce: false });
+    }
+
     // 初始化时source是字符串，之后d3将它替换为对象
-    getSourceId(edge) {
+    _getSourceId(edge) {
         if (typeof edge.source === 'string') {
             return edge.source;
         } else {
@@ -176,7 +252,7 @@ export default class NetworkGraph {
     }
 
     // 初始化时target是字符串，之后d3将它替换为对象
-    getTargetId(edge) {
+    _getTargetId(edge) {
         if (typeof edge.target === 'string') {
             return edge.target;
         } else {
@@ -184,63 +260,14 @@ export default class NetworkGraph {
         }
     }
 
-    parse(data) {
-        const { edges, nodes } = data;
-        const sames = {};
-
-        // 在最后添加假数据占位，避免调用d3.raise时移动了最后一个元素，导致d3.order不工作，边盖在点上
-        if (!this.fakeDataAppended) {
-            this.fakeDataAppended = true;
-            edges.push({
-                source: '__fake_source__',
-                target: '__fake_target__',
-                visible: false,
-            });
-
-            nodes.push({
-                id: '__fake_source__',
-                visible: false
-            }, {
-                id: '__fake_target__',
-                visible: false
-            });
-        }
-
-        edges.forEach(edge => {
-
-            const sourceId = this.getSourceId(edge);
-            const targetId = this.getTargetId(edge);
-            let direction = `${sourceId}-${targetId}`;
-            if (sames[direction] === undefined) sames[direction] = 0;
-            edge.sameIndex = ++sames[direction];
-
-        });
-
-        edges.forEach((edge, i) => {
-
-            const sourceId = this.getSourceId(edge);
-            const targetId = this.getTargetId(edge);
-            const same = sames[`${sourceId}-${targetId}`] || 0;
-            const sameAlt = sames[`${targetId}-${sourceId}`] || 0;
-
-            edge.sameTotal = same + sameAlt;
-            edge.sameTotalHalf = edge.sameTotal / 2;
-            edge.sameUneven = edge.sameTotal % 2 !== 0;
-            edge.sameMiddleLink = edge.sameUneven === true && Math.ceil(edge.sameTotalHalf) === edge.sameIndex;
-            edge.sameLowerHalf = edge.sameIndex > edge.sameTotalHalf;
-            edge.sameIndexCorrected = edge.sameLowerHalf ? (Math.ceil(edge.sameTotalHalf) - edge.sameIndex) : edge.sameIndex;
-
-        });
-
-        return data;
-    }
-
-    createNodes(enter) {
+    _createNodes(enter) {
         const nodeSelection = enter.append(d => {
             const constructor = NetworkGraph.getNodeConstructor(d.type);
             const selection = constructor.create(d, this);
             return selection.node();
         });
+
+        nodeSelection.on('click', this._handleClickAtNode);
 
         nodeSelection.attr('id', d => d.id)
             .classed('node-group', true);
@@ -250,7 +277,7 @@ export default class NetworkGraph {
         return nodeSelection;
     }
 
-    updateNodes(nodeSelection) {
+    _updateNodes(nodeSelection) {
         const graph = this;
         // 这里对每个节点单独执行更新操作
         // TODO: 先筛选出每类节点，然后批量更新每类节点，会不会更快？
@@ -261,7 +288,7 @@ export default class NetworkGraph {
         });
     }
 
-    createEdges(enter) {
+    _createEdges(enter) {
         const edgeSelection = enter.append(d => {
             const constructor = NetworkGraph.getEdgeConstructor(d.type);
             const selection = constructor.create(d, this);
@@ -270,7 +297,7 @@ export default class NetworkGraph {
         return edgeSelection;
     }
 
-    updateEdges(edgeSelection) {
+    _updateEdges(edgeSelection) {
         const graph = this;
         edgeSelection.each(function(d) {
             const constructor = NetworkGraph.getEdgeConstructor(d.type);
@@ -279,6 +306,14 @@ export default class NetworkGraph {
         });
     }
 
+    _handleClickAtNode(event, d) {
+        this.emit('click.node', d.id);
+        if (this.useClickSelect) {
+            const ids = [d.id];
+            this.selectNodes(ids);
+            this.emit('selectChange.node', ids);
+        }
+    }
 }
 
 NetworkGraph.nodeConstrutors = {
