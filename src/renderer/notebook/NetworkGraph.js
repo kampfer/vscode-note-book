@@ -43,16 +43,20 @@ export default class NetworkGraph extends EventEmitter {
         this.useClickSelect = useClickSelect;
         this.useDrag = useDrag;
 
-        let svgSelection;
         if (container) {
-            svgSelection = d3.select(container).append('svg');
+            this.svgSelection = d3.select(container).append('svg');
         } else {
-            svgSelection = d3.create('svg');
+            this.svgSelection = d3.create('svg');
         }
 
-        svgSelection.attr('viewBox', [-width / 2, -height / 2, width, height])
-            .attr('width', width)
-            .attr('height', height);
+        // d3 selection
+        this.defsSelection = this.svgSelection.append('defs');
+        this.gSelection = this.svgSelection.append('g');
+        this.nodeSelection = null;
+        this.edgeSelection = null;
+        this.edgePathSelection = null;
+
+        this.setViewBox(-width / 2, -height / 2, width, height);
 
         const simulation = d3.forceSimulation();
         const linkForce = d3.forceLink().id(d => d.id).distance(200);
@@ -104,14 +108,12 @@ export default class NetworkGraph extends EventEmitter {
 
         this._handleClickAtNode = this._handleClickAtNode.bind(this);
 
-        // d3 selection
-        this.svgSelection = svgSelection;
-        this.defsSelection = svgSelection.append('defs');
-        this.gSelection = svgSelection.append('g');
-        this.nodeSelection = null;
-        this.edgeSelection = null;
-        this.edgePathSelection = null;
+    }
 
+    setViewBox(left, top, width, height) {
+        this.svgSelection.attr('viewBox', [left, top, width, height])
+            .attr('width', width)
+            .attr('height', height);
     }
 
     setData(data) {

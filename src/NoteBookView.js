@@ -123,14 +123,14 @@ class NoteBookView {
 
         const note = this.noteBook.getNote(noteName);
 
-        if (!note || note === this.currentNote) return;
+        if (!note) {
+            vscode.window.showInformationMessage(`笔记${noteName}不存在！`);
+            return;
+        }
+        
+        if (note === this.currentNote) return;
 
         this.currentNote = note;
-
-        this._panel.webview.postMessage({
-            command: 'selectNote',
-            data: { id: noteName }
-        });
 
         if (!this._noteView) {
             this._noteView = new NoteView({
@@ -138,8 +138,6 @@ class NoteBookView {
                 extensionContext: this.extensionContext,
                 root: this.root,
             });
-
-            this._noteView.on('selectNote', ({ id }) => this.selectNote(id));
         }
 
         vscode.workspace.openTextDocument(note.path).then(note => this._noteView.openBySelf(note));
