@@ -1,79 +1,6 @@
 import * as d3 from 'd3';
 import * as math from './math';
 
-function linkArc(d) {
-
-    const r = 34;
-    const arrowSize = 10;
-    const delta = 15;
-    const angle = 15;
-
-    let sourceR,
-        targetR,
-        startX,
-        startY,
-        endX,
-        endY,
-        sourceX,
-        sourceY,
-        targetX,
-        targetY;
-
-    // 默认起点在左侧，终点在右侧。当拖动节点导致起点和终点位置反转时，计算path时需要反转起点和终点保证文字的朝向正常
-    if (d.target.x < d.source.x) { // 反
-        startX = d.target.x;
-        startY = d.target.y;
-        endX = d.source.x;
-        endY = d.source.y;
-        sourceR = r + arrowSize;
-        targetR = r;
-    } else {    // 正
-        startX = d.source.x;
-        startY = d.source.y;
-        endX = d.target.x;
-        endY = d.target.y;
-        sourceR = r;
-        targetR = r + arrowSize;
-    }
-
-    const intersectSourcePoints = math.getIntersectPointBetweenCircleAndLine(startX, startY, endX, endY, startX, startY, sourceR);
-    if (math.onSegement([startX, startY], [endX, endY], intersectSourcePoints[0])) {
-        sourceX = intersectSourcePoints[0][0];
-        sourceY = intersectSourcePoints[0][1];
-    } else {
-        sourceX = intersectSourcePoints[1][0];
-        sourceY = intersectSourcePoints[1][1];
-    }
-
-    const intersectTargetPoints = math.getIntersectPointBetweenCircleAndLine(startX, startY, endX, endY, endX, endY, targetR);
-    if (math.onSegement([startX, startY], [endX, endY], intersectTargetPoints[0])) {
-        targetX = intersectTargetPoints[0][0];
-        targetY = intersectTargetPoints[0][1];
-    } else {
-        targetX = intersectTargetPoints[1][0];
-        targetY = intersectTargetPoints[1][1];
-    }
-
-    if (d.sameTotal === 1 || d.sameMiddleLink) {
-        return `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
-    } else {
-        [sourceX, sourceY] = math.rotatePoint(sourceX, sourceY, startX, startY, -angle * d.sameIndexCorrected);
-        [targetX, targetY] = math.rotatePoint(targetX, targetY, endX, endY, angle * d.sameIndexCorrected);
-
-        const middlePoints = math.getMiddlePointOfBezierCurve(sourceX, sourceY, targetX, targetY, delta * d.sameIndexCorrected);
-        let middlePoint;
-        if (math.checkSameSide(startX, startY, endX, endY, sourceX, sourceY, ...middlePoints[0]) > 0) {
-            middlePoint = middlePoints[0];
-        } else {
-            middlePoint = middlePoints[1];
-        }
-
-        const controlPoint = math.getControlPointOfBezierCurve([sourceX, sourceY], middlePoint, [targetX, targetY]);
-
-        return `M ${sourceX} ${sourceY} Q ${controlPoint[0]} ${controlPoint[1]} ${targetX} ${targetY}`;
-    }
-}
-
 export default class NetworkGraph {
 
     constructor({
@@ -325,9 +252,10 @@ export default class NetworkGraph {
         const graph = this;
         // 这里对每个节点单独执行更新操作
         // TODO: 先筛选出每类节点，然后批量更新每类节点，会不会更快？
-        nodeSelection.each(function(d) {
+        nodeSelection.each(function(d, i, nodes) {
             const constructor = NetworkGraph.getNodeConstructor(d.type);
-            constructor.update.call(this, d, graph);
+            const selection = d3.select(this);
+            constructor.update(selection, d, graph);
         });
     }
 
@@ -344,7 +272,8 @@ export default class NetworkGraph {
         const graph = this;
         edgeSelection.each(function(d) {
             const constructor = NetworkGraph.getEdgeConstructor(d.type);
-            constructor.update.call(this, d, graph);
+            const selection = d3.select(this);
+            constructor.update(selection, d, graph);
         });
     }
 
@@ -352,32 +281,44 @@ export default class NetworkGraph {
 
 NetworkGraph.nodeConstrutors = {
     default: {
+        options: {
+            size: 15,
+            labelSize: 14
+        },
         // TODO：create是否一定需要返回一个node，是否可以直接在svg添加标签？
         create(datum, graph) {
             // 必须手动绑定数据
             const groupSelection = d3.create('svg:g').datum(datum);
+            const size = this.options.size;
+            const labelSize = this.options.labelSize;
 
             groupSelection.append('circle')
                 .classed('node', true)
-                .attr('r', 15);
+                .attr('r', size);
 
             groupSelection.append('text')
                 .text(datum.label)
                 .attr('x', 0)
-                .attr('y', 15 + 16)
+                .attr('y', size + labelSize)
+                .style('font-size', labelSize)
                 .attr('text-anchor', 'middle')
                 .classed('node-label', true);
 
             return groupSelection;
         },
-        update(datum, graph) {
-            d3.select(this).attr('transform', d => `translate(${d.x}, ${d.y})`);
+        update(selection, datum, graph) {
+            selection.attr('transform', d => `translate(${d.x}, ${d.y})`);
         }
     }
 };
 
 NetworkGraph.edgeConstructors = {
     default: {
+        getNodeSize(d) {
+            if (d.size) return d.size;
+            const constructor = NetworkGraph.getNodeConstructor(d.type);
+            return constructor.options.size;
+        },
         // TODO：create是否一定需要返回一个node，是否可以直接在svg添加标签？
         create(datum, graph) {
             const defsSelection = graph.defsSelection;
@@ -396,7 +337,7 @@ NetworkGraph.edgeConstructors = {
                     .attr('overflow', 'visible')
                     .attr('orient', 'auto-start-reverse')
                     .append('svg:path')
-                        .attr('d', 'M 0,-5 L 10 ,0 L 0,5');
+                    .attr('d', 'M 0,-5 L 10 ,0 L 0,5');
             }
 
             const pathSelection = d3.create('svg:path').datum(datum);
@@ -411,15 +352,14 @@ NetworkGraph.edgeConstructors = {
             textSelection.classed('edge-label', true)
                 .classed('hidden', datum.visible === false)
                 .append('textPath')
-                    .text(`关系：${datum.label}`)
-                    .attr('xlink:href', `#edge-${datum.id}`)
-                    .attr('text-anchor', 'middle')
-                    .attr('startOffset', '50%');
+                .text(`关系：${datum.label}`)
+                .attr('xlink:href', `#edge-${datum.id}`)
+                .attr('text-anchor', 'middle')
+                .attr('startOffset', '50%');
 
             return pathSelection;
         },
-        update(datum, graph) {
-            const selection = d3.select(this);
+        update(selection, datum, graph) {
             // 拖动点时保证箭头的指向正确
             if (datum.target.x < datum.source.x) {  // 反
                 selection.attr('marker-start', `url(${new URL(`#arrow-${datum.selected ? 'selected' : 'default'}`, location)}`);
@@ -428,7 +368,78 @@ NetworkGraph.edgeConstructors = {
                 selection.attr('marker-start', 'none');
                 selection.attr('marker-end', `url(${new URL(`#arrow-${datum.selected ? 'selected' : 'default'}`, location)}`);
             }
-            selection.attr('d', linkArc);
+            selection.attr('d', this.linkArc.bind(this));
+        },
+        linkArc(d) {
+            // const r = 34;
+            const arrowSize = 10;
+            const delta = 15;
+            const angle = 15;
+
+            let sourceR = this.getNodeSize(d.source),
+                targetR = this.getNodeSize(d.target),
+                startX,
+                startY,
+                endX,
+                endY,
+                sourceX,
+                sourceY,
+                targetX,
+                targetY;
+
+            // 默认起点在左侧，终点在右侧。当拖动节点导致起点和终点位置反转时，计算path时需要反转起点和终点保证文字的朝向正常
+            if (d.target.x < d.source.x) { // 反
+                startX = d.target.x;
+                startY = d.target.y;
+                endX = d.source.x;
+                endY = d.source.y;
+                sourceR += arrowSize;
+                // targetR = r;
+            } else {    // 正
+                startX = d.source.x;
+                startY = d.source.y;
+                endX = d.target.x;
+                endY = d.target.y;
+                // sourceR = r;
+                targetR += arrowSize;
+            }
+
+            const intersectSourcePoints = math.getIntersectPointBetweenCircleAndLine(startX, startY, endX, endY, startX, startY, sourceR);
+            if (math.onSegement([startX, startY], [endX, endY], intersectSourcePoints[0])) {
+                sourceX = intersectSourcePoints[0][0];
+                sourceY = intersectSourcePoints[0][1];
+            } else {
+                sourceX = intersectSourcePoints[1][0];
+                sourceY = intersectSourcePoints[1][1];
+            }
+
+            const intersectTargetPoints = math.getIntersectPointBetweenCircleAndLine(startX, startY, endX, endY, endX, endY, targetR);
+            if (math.onSegement([startX, startY], [endX, endY], intersectTargetPoints[0])) {
+                targetX = intersectTargetPoints[0][0];
+                targetY = intersectTargetPoints[0][1];
+            } else {
+                targetX = intersectTargetPoints[1][0];
+                targetY = intersectTargetPoints[1][1];
+            }
+
+            if (d.sameTotal === 1 || d.sameMiddleLink) {
+                return `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
+            } else {
+                [sourceX, sourceY] = math.rotatePoint(sourceX, sourceY, startX, startY, -angle * d.sameIndexCorrected);
+                [targetX, targetY] = math.rotatePoint(targetX, targetY, endX, endY, angle * d.sameIndexCorrected);
+
+                const middlePoints = math.getMiddlePointOfBezierCurve(sourceX, sourceY, targetX, targetY, delta * d.sameIndexCorrected);
+                let middlePoint;
+                if (math.checkSameSide(startX, startY, endX, endY, sourceX, sourceY, ...middlePoints[0]) > 0) {
+                    middlePoint = middlePoints[0];
+                } else {
+                    middlePoint = middlePoints[1];
+                }
+
+                const controlPoint = math.getControlPointOfBezierCurve([sourceX, sourceY], middlePoint, [targetX, targetY]);
+
+                return `M ${sourceX} ${sourceY} Q ${controlPoint[0]} ${controlPoint[1]} ${targetX} ${targetY}`;
+            }
         }
     }
 };

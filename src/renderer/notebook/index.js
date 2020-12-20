@@ -54,8 +54,8 @@ NetworkGraph.registerNode('test', {
         return groupSelection;
     },
     
-    update() {
-        d3.select(this).attr('transform', d => `translate(${d.x}, ${d.y})`);
+    update(selection, d, graph) {
+        selection.attr('transform', d => `translate(${d.x}, ${d.y})`);
     }
 
 });
