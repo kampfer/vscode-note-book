@@ -140,7 +140,11 @@ class NoteBookView {
             });
         }
 
-        vscode.workspace.openTextDocument(note.path).then(note => this._noteView.openBySelf(note));
+        vscode.workspace.openTextDocument(note.path)
+            .then(
+                note => this._noteView.openBySelf(note),
+                () => vscode.window.showInformationMessage(`笔记${noteName}不存在！`)
+            );
 
     }
 
