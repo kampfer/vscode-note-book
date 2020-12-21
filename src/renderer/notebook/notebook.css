@@ -22,3 +22,15 @@
 .node-group.selected .node {
     stroke-width: 2px;
 }
+
+.hasSelected .node-group,
+.hasSelected .edge,
+.hasSelected .edge-label {
+    opacity: 0.2;
+}
+
+.node-group.selected,
+.edge.selected,
+.edge-label.selected {
+    opacity: 1;
+}

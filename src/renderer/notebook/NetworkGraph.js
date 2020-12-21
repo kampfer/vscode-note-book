@@ -200,6 +200,9 @@ export default class NetworkGraph extends EventEmitter {
         this.nodeSelection = this.gSelection.selectAll('g.node-group');
         this.edgeLabelSelection = this.gSelection.selectAll('text.edge-label');
 
+        this.edgeLabelSelection.classed('selected', d => d.selected);
+        this.edgeLabelSelection.classed('hidden', d => d.visible === false);
+
         const selectedNodes = this.nodeSelection.filter(d => d.selected);
         const selectedEdges = this.edgeSelection.filter(d => d.selected);
 
@@ -228,6 +231,23 @@ export default class NetworkGraph extends EventEmitter {
                 node.selected = true;
             } else {
                 node.selected = false;
+            }
+        }
+        this.rerender({ restartForce: false });
+    }
+
+    selectNodesAndSiblings(ids) {
+        const { nodes, edges } = this.data;
+        for(let node of nodes) {
+            const flag = ids.includes(node.id);
+            node.selected = flag;
+        }
+        for(let edge of edges) {
+            const flag = ids.includes(edge.source.id) || ids.includes(edge.target.id)
+            edge.selected = flag;
+            if (flag) {
+                edge.source.selected = flag;
+                edge.target.selected = flag;
             }
         }
         this.rerender({ restartForce: false });
@@ -312,7 +332,7 @@ export default class NetworkGraph extends EventEmitter {
         this.emit('click.node', d.id);
         if (this.useClickSelect) {
             const ids = [d.id];
-            this.selectNodes(ids);
+            this.selectNodesAndSiblings(ids);
             this.emit('selectChange.node', ids);
         }
     }
