@@ -84,10 +84,27 @@ window.addEventListener('message', event => {
             width: window.innerWidth,
             height: window.innerHeight,
             useClickSelect: true,
+            useZoom: true
         });
 
         graph.on('selectChange.node', ids => {
             console.log('selectChange.node', ids);
+
+            const { nodes, edges } = graph.data;
+            for(let node of nodes) {
+                const flag = ids.includes(node.id);
+                node.selected = flag;
+            }
+            for(let edge of edges) {
+                const flag = ids.includes(edge.source.id) || ids.includes(edge.target.id)
+                edge.selected = flag;
+                if (flag) {
+                    edge.source.selected = flag;
+                    edge.target.selected = flag;
+                }
+            }
+            graph.rerender({ restartForce: false });
+
             vscode.postMessage({
                 command: 'selectNote',
                 data: {

@@ -106,6 +106,18 @@ export default class NetworkGraph extends EventEmitter {
                 });
         }
 
+        if (this.useZoom) {
+            const d3Zoom = d3.zoom()
+                .filter(event => !event.ctrlKey)
+                .extent([[-width / 2, -height / 2], [width / 2, height / 2]])
+                // .scaleExtent([1, 8])
+                .on('zoom', ({ transform }) => this.gSelection.attr('transform', transform));
+
+            this.svgSelection.call(d3Zoom);
+
+            this.d3Zoom = d3Zoom;
+        }
+
         this._handleClickAtNode = this._handleClickAtNode.bind(this);
 
     }
@@ -173,6 +185,8 @@ export default class NetworkGraph extends EventEmitter {
         restartForce = true
     } = {}) {
 
+        console.log('render');
+
         const { nodes, edges } = this.setData(data);
 
         if (restartForce) this.forceSimulation.stop();
@@ -236,19 +250,11 @@ export default class NetworkGraph extends EventEmitter {
         this.rerender({ restartForce: false });
     }
 
-    selectNodesAndSiblings(ids) {
-        const { nodes, edges } = this.data;
-        for(let node of nodes) {
-            const flag = ids.includes(node.id);
-            node.selected = flag;
-        }
+    selectEdges(ids) {
+        const { edges } = this.data;
         for(let edge of edges) {
-            const flag = ids.includes(edge.source.id) || ids.includes(edge.target.id)
+            const flag = ids.includes(edge.id);
             edge.selected = flag;
-            if (flag) {
-                edge.source.selected = flag;
-                edge.target.selected = flag;
-            }
         }
         this.rerender({ restartForce: false });
     }
@@ -332,7 +338,7 @@ export default class NetworkGraph extends EventEmitter {
         this.emit('click.node', d.id);
         if (this.useClickSelect) {
             const ids = [d.id];
-            this.selectNodesAndSiblings(ids);
+            this.selectNodes(ids);
             this.emit('selectChange.node', ids);
         }
     }
