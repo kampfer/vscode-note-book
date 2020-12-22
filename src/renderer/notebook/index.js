@@ -60,14 +60,66 @@ NetworkGraph.registerNode('test', {
 
 });
 
+// window加载完毕（load事件）时innerWidth、innerHeight可能等于0
+// 放在messge事件的回调中才能取到正常的innerWidth、innerHeight
+const graph = new NetworkGraph({
+    container: 'body',
+    width: window.innerWidth,
+    height: window.innerHeight,
+    useClickSelect: true,
+    useZoom: true
+});
+
+graph.on('selectChange.node', (ids) => vscode.postMessage({
+    command: 'selectNote',
+    data: {
+        id: ids[0]
+    }
+}));
+
+window.addEventListener('resize', () => {
+    const { innerWidth: width, innerHeight: height } = window;
+    graph.setViewBox(-width / 2, -height / 2, width, height);
+});
+
+window.document.body.addEventListener('click', () => graph.clearSelect());
+
+function selectNodesAndSiblings(ids) {
+    console.log('selectChange.node', ids);
+
+    const { nodes, edges } = graph.data;
+    for(let edge of edges) {
+        const flag = ids.includes(edge.source.id) || ids.includes(edge.target.id)
+        edge.activated = flag;
+        if (flag) {
+            ids.push(edge.source.id);
+            ids.push(edge.target.id);
+        }
+    }
+    for(let node of nodes) {
+        const flag = ids.includes(node.id);
+        node.selected = flag;
+    }
+    
+    console.log(graph.data);
+    graph.rerender({ restartForce: false });
+
+    vscode.postMessage({
+        command: 'selectNote',
+        data: {
+            id: ids[0]
+        }
+    });
+}
+
 window.addEventListener('message', event => {
 
     const message = event.data;
 
     if (message.command === 'refresh') {
         location.reload();
-    } else if (message.command === 'selectNote') {
-        // graph.selectNodes([message.data.id]);
+    } else if (message.command === 'selectNodesAndSiblings') {
+        selectNodesAndSiblings(message.data.ids);
     } else {
         const data = { nodes: message.nodes, edges: message.links };
 
@@ -76,49 +128,6 @@ window.addEventListener('message', event => {
             e.id = `${e.source}-${e.target}`;
             e.label = e.id;
         });
-
-        // window加载完毕（load事件）时innerWidth、innerHeight可能等于0
-        // 放在messge事件的回调中才能取到正常的innerWidth、innerHeight
-        const graph = new NetworkGraph({
-            container: 'body',
-            width: window.innerWidth,
-            height: window.innerHeight,
-            useClickSelect: true,
-            useZoom: true
-        });
-
-        graph.on('selectChange.node', ids => {
-            console.log('selectChange.node', ids);
-
-            const { nodes, edges } = graph.data;
-            for(let node of nodes) {
-                const flag = ids.includes(node.id);
-                node.selected = flag;
-            }
-            for(let edge of edges) {
-                const flag = ids.includes(edge.source.id) || ids.includes(edge.target.id)
-                edge.selected = flag;
-                if (flag) {
-                    edge.source.selected = flag;
-                    edge.target.selected = flag;
-                }
-            }
-            graph.rerender({ restartForce: false });
-
-            vscode.postMessage({
-                command: 'selectNote',
-                data: {
-                    id: ids[0]
-                }
-            });
-        });
-
-        window.addEventListener('resize', () => {
-            const { innerWidth: width, innerHeight: height } = window;
-            graph.setViewBox(-width / 2, -height / 2, width, height);
-        });
-
-        window.document.body.addEventListener('click', () => graph.clearSelect());
 
         graph.render(data);
 

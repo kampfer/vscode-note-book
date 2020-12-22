@@ -198,6 +198,7 @@ export default class NetworkGraph extends EventEmitter {
             .data(edges, d => d.id)
             .join(enter => this._createEdges(enter))
             .classed('selected', d => d.selected)
+            .classed('activated', d => d.activated)
             .classed('hidden', d => d.visible === false);
 
         // 节点
@@ -214,8 +215,10 @@ export default class NetworkGraph extends EventEmitter {
         this.nodeSelection = this.gSelection.selectAll('g.node-group');
         this.edgeLabelSelection = this.gSelection.selectAll('text.edge-label');
 
-        this.edgeLabelSelection.classed('selected', d => d.selected);
-        this.edgeLabelSelection.classed('hidden', d => d.visible === false);
+        this.edgeLabelSelection
+            .classed('selected', d => d.selected)
+            .classed('activated', d => d.activated)
+            .classed('hidden', d => d.visible === false);
 
         const selectedNodes = this.nodeSelection.filter(d => d.selected);
         const selectedEdges = this.edgeSelection.filter(d => d.selected);

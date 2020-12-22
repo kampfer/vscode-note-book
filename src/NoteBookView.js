@@ -138,6 +138,8 @@ class NoteBookView {
                 extensionContext: this.extensionContext,
                 root: this.root,
             });
+            // 在笔记本详情中点击其他笔记的链接会触发selectNode
+            this._noteView.on('selectNote', ({ id }) => this.selectNote(id));
         }
 
         vscode.workspace.openTextDocument(note.path)
@@ -145,6 +147,13 @@ class NoteBookView {
                 note => this._noteView.openBySelf(note),
                 () => vscode.window.showInformationMessage(`笔记${noteName}不存在！`)
             );
+
+        this._panel.webview.postMessage({
+            command: 'selectNodesAndSiblings',
+            data: {
+                ids: [noteName]
+            }
+        });
 
     }
 

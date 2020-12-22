@@ -31,6 +31,9 @@
 
 .node-group.selected,
 .edge.selected,
-.edge-label.selected {
+.edge-label.selected,
+.node-group.activated,
+.edge.activated,
+.edge-label.activated {
     opacity: 1;
 }
