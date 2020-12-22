@@ -118,6 +118,8 @@ window.addEventListener('message', event => {
             graph.setViewBox(-width / 2, -height / 2, width, height);
         });
 
+        window.document.body.addEventListener('click', () => graph.clearSelect());
+
         graph.render(data);
 
     }

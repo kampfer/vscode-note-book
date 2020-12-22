@@ -335,6 +335,8 @@ export default class NetworkGraph extends EventEmitter {
     }
 
     _handleClickAtNode(event, d) {
+        event.preventDefault();
+        event.stopPropagation();
         this.emit('click.node', d.id);
         if (this.useClickSelect) {
             const ids = [d.id];
