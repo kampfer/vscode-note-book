@@ -82,34 +82,31 @@ window.addEventListener('resize', () => {
     graph.setViewBox(-width / 2, -height / 2, width, height);
 });
 
-window.document.body.addEventListener('click', () => graph.clearSelect());
+window.document.body.addEventListener('click', () => {
+    graph.clearSelect()
+    vscode.postMessage({ command: 'clearSelect' });
+});
 
 function selectNodesAndSiblings(ids) {
     console.log('selectChange.node', ids);
 
     const { nodes, edges } = graph.data;
+    const activatedNodes = [];
     for(let edge of edges) {
-        const flag = ids.includes(edge.source.id) || ids.includes(edge.target.id)
+        const flag = ids.includes(edge.source.id) || ids.includes(edge.target.id);
         edge.activated = flag;
         if (flag) {
-            ids.push(edge.source.id);
-            ids.push(edge.target.id);
+            activatedNodes.push(edge.source.id);
+            activatedNodes.push(edge.target.id);
         }
     }
     for(let node of nodes) {
-        const flag = ids.includes(node.id);
-        node.selected = flag;
+        const flag = activatedNodes.includes(node.id);
+        node.activated = flag;
     }
     
     console.log(graph.data);
     graph.rerender({ restartForce: false });
-
-    vscode.postMessage({
-        command: 'selectNote',
-        data: {
-            id: ids[0]
-        }
-    });
 }
 
 window.addEventListener('message', event => {
@@ -134,8 +131,6 @@ window.addEventListener('message', event => {
     }
 
 });
-
-// window.addEventListener('resize', () => resizeView());
 
 vscode.postMessage({
     command: 'getGraphDataOfNoteBook'

@@ -43,6 +43,8 @@ class NoteBookView {
                         return panel.webview.postMessage(this.getNetworkData());
                     case 'selectNote':
                         return this.selectNote(message.data.id);
+                    case 'clearSelect':
+                        return this.currentNote = null;
                 }
 
             },
