@@ -25,7 +25,7 @@ body {
 }
 
 .node-group.selected .node {
-    stroke-width: 2px;
+    stroke-width: 3px;
 }
 
 .hasSelected .node-group,
