@@ -3,6 +3,10 @@ body {
     padding: 0;
 }
 
+svg {
+    display: block;
+}
+
 .arrow {
     fill: rgb(115, 115, 115);
 }

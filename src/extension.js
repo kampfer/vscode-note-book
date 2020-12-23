@@ -20,7 +20,8 @@ function activate(context) {
 
     // 笔记本应该只有一个目录
     const cwd = vscode.workspace.workspaceFolders[0];
-    const noteBook = new NoteBook({ localStoragePath: path.join(cwd.uri.fsPath, '.vscode', 'noteBook.json') });
+    const storagePath = path.join(cwd.uri.fsPath, '.vscode', 'noteBook.json');
+    const noteBook = new NoteBook({ localStoragePath: storagePath });
     const noteBookView = new NoteBookView({ noteBook, extensionContext: context, root: cwd });
 
     const commands = [
@@ -49,9 +50,6 @@ function activate(context) {
         context.subscriptions.push(disposable);
 
     }
-
-    // 存在笔记本，直接打开关系图
-    noteBookView.open();
 
     // 注册事件
     // https://code.visualstudio.com/api/references/vscode-api#workspace
@@ -128,6 +126,13 @@ function activate(context) {
         noteBook.store();
 
     });
+
+    if (!fs.existsSync(storagePath)) {
+        vscode.window.showInformationMessage(`${storagePath}不存在，请执行扫描命令！`);
+    }
+
+    // 存在笔记本，直接打开关系图
+    if (!noteBook.empty()) noteBookView.open();
 
     return {
         extendMarkdownIt(md) {

@@ -27,6 +27,10 @@ class NoteBook extends EventEmitter {
 
     }
 
+    empty() {
+        return !!this._data && Object.keys(this._data.notes).length === 0
+    }
+
     loadData(dataPath) {
 
         try {
