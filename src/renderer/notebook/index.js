@@ -2,6 +2,7 @@
 
 import * as d3 from 'd3';
 import NetworkGraph from './NetworkGraph';
+import * as debug from './debug';
 
 import './notebook.css';
 
@@ -109,6 +110,12 @@ function selectNodesAndSiblings(ids) {
     graph.rerender({ restartForce: false });
 }
 
+function render() {
+    vscode.postMessage({
+        command: 'getGraphDataOfNoteBook'
+    });
+}
+
 window.addEventListener('message', event => {
 
     const message = event.data;
@@ -132,6 +139,15 @@ window.addEventListener('message', event => {
 
 });
 
-vscode.postMessage({
-    command: 'getGraphDataOfNoteBook'
-});
+if (process.env.NODE_ENV === 'development') {
+
+    debug.init({
+        graph,
+        render
+    });
+
+}
+
+if (!debug.settings['use mock data']) {
+    render();
+}
