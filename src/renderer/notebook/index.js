@@ -1,65 +1,10 @@
 // document.body.innerHTML = (new Date()).toString();
 
-import * as d3 from 'd3';
 import NetworkGraph from './NetworkGraph';
-import * as debug from './debug';
 
 import './notebook.css';
 
 const vscode = acquireVsCodeApi();
-
-NetworkGraph.registerNode('test', {
-
-    create(datum, graph) {
-
-        const defsSelection = graph.defsSelection;
-
-        if (defsSelection.select('#circle-image').empty()) {
-            // 圆形裁剪路径
-            defsSelection.append('clipPath')
-                .attr('id', 'circle-image')
-                .append('circle')
-                .attr('cx', 0)
-                .attr('cy', 0)
-                .attr('r', 30);
-        }
-
-        const groupSelection = d3.create('svg:g').datum(datum);
-
-        groupSelection.classed('virtual-node', datum.virtual);
-
-        groupSelection.append('circle')
-            .classed('outer-circle', true)
-            .attr('r', 34);
-
-        groupSelection.append('circle')
-            .classed('inner-circle', true)
-            .attr('r', 30);
-
-        groupSelection.append('image')
-            .classed('node-image', true)
-            .attr('clip-path', 'url(#circle-image)')
-            .attr('xlink:href', d => d.image)
-            .attr('width', 60)
-            .attr('height', 60)
-            .attr('x', -30)
-            .attr('y', -30);
-
-        groupSelection.append('text')
-            .text(datum.label)
-            .classed('node-label', true)
-            .attr('x', 0)
-            .attr('y', 34 + 16)
-            .attr('text-anchor', 'middle')
-
-        return groupSelection;
-    },
-    
-    update(selection, d, graph) {
-        selection.attr('transform', d => `translate(${d.x}, ${d.y})`);
-    }
-
-});
 
 // window加载完毕（load事件）时innerWidth、innerHeight可能等于0
 // 放在messge事件的回调中才能取到正常的innerWidth、innerHeight
@@ -139,15 +84,4 @@ window.addEventListener('message', event => {
 
 });
 
-if (process.env.NODE_ENV === 'development') {
-
-    debug.init({
-        graph,
-        render
-    });
-
-}
-
-if (!debug.settings['use mock data']) {
-    render();
-}
+render();
