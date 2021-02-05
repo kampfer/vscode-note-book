@@ -126,7 +126,7 @@ class NoteBookView {
         const note = this.noteBook.getNote(noteName);
 
         if (!note) {
-            vscode.window.showInformationMessage(`笔记${noteName}不存在！`);
+            vscode.window.showInformationMessage(`笔记【${noteName}】不存在！`);
             return;
         }
         
@@ -147,7 +147,7 @@ class NoteBookView {
         vscode.workspace.openTextDocument(note.path)
             .then(
                 note => this._noteView.openBySelf(note),
-                () => vscode.window.showInformationMessage(`笔记${noteName}不存在！`)
+                () => vscode.window.showInformationMessage(`笔记【${noteName}】不存在！`)
             );
 
         this._panel.webview.postMessage({

@@ -1,6 +1,7 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const { VueLoaderPlugin } = require("vue-loader");
 
 const mainConfig = {
     target: 'electron-main',
@@ -43,11 +44,21 @@ const rendererConfig = {
             {
                 test:/\.(woff|woff2|eot|otf|ttf)$/,
                 use:'file-loader'
-            }
+            },
+            {
+                test: /\.vue$/,
+                loader: 'vue-loader'
+            },
         ],
+    },
+    resolve: {
+        alias: {
+            vue: 'vue/dist/vue.esm-bundler.js',
+        },
     },
     plugins: [
         new MiniCssExtractPlugin(),
+        new VueLoaderPlugin(),
     ]
 };
 
