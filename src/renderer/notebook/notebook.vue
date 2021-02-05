@@ -1,15 +1,20 @@
 <template>
     <div class="notebook">
+        <search-box></search-box>
         <div class="graph"></div>
     </div>
 </template>
 
 <script>
 import NetworkGraph from './NetworkGraph';
+import SearchBox from './SearchBox.vue';
 
 const vscode = acquireVsCodeApi();
 
 export default {
+    components: {
+        SearchBox
+    },
     data() {
         return {
             test: 'test'
