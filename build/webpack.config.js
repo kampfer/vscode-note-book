@@ -42,7 +42,7 @@ const rendererConfig = {
                 use: [MiniCssExtractPlugin.loader, 'css-loader'],
             },
             {
-                test:/\.(woff|woff2|eot|otf|ttf)$/,
+                test:/\.(woff|woff2|eot|otf|ttf|svg)$/,
                 use:'file-loader'
             },
             {

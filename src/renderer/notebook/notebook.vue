@@ -98,7 +98,7 @@ export default {
             command: 'getGraphDataOfNoteBook'
         });
     },
-    destroyed() {
+    unmounted() {
 
     }
 }
