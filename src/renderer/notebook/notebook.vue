@@ -1,6 +1,6 @@
 <template>
     <div class="notebook">
-        <search-box></search-box>
+        <search-box placeholder="搜索"></search-box>
         <div class="graph"></div>
     </div>
 </template>

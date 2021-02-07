@@ -3,9 +3,9 @@
         <div class="component-SearchBox-iconContainer">
             <FontIcon iconName="Search"></FontIcon>
         </div>
-        <input class="component-SearchBox-field"/>
-        <div class="component-SearchBox-clearButton">
-            <Button :iconProps="cancelIconProps"></Button>
+        <input class="component-SearchBox-field" type="text" v-model="keyword" :placeholder="placeholder" @focus="focus" @blur="blur"/>
+        <div class="component-SearchBox-clearButton" v-if="displayClearButton">
+            <Button :iconProps="cancelIconProps" @click="clear"></Button>
         </div>
     </div>
 </template>
@@ -19,12 +19,32 @@ export default {
         Button,
         FontIcon,
     },
+    props: {
+        placeholder: String,
+    },
     data() {
         return {
+            keyword: '',
             cancelIconProps: {
                 iconName: 'Cancel'
             }
         };
+    },
+    computed: {
+        displayClearButton() {
+            return this.keyword.length > 0;
+        }
+    },
+    methods: {
+        clear() {
+            this.keyword = '';
+        },
+        focus() {
+            this.$el.classList.add('is-active');
+        },
+        blur() {
+            this.$el.classList.remove('is-active');
+        },
     }
 }
 </script>
@@ -42,6 +62,15 @@ export default {
     align-items: stretch;
     font-size: 14px;
     font-weight: 400;
+    border-radius: 2px;
+}
+
+.component-SearchBox.is-active {
+    border: 1px solid rgb(0, 120, 211);
+}
+
+.component-SearchBox.is-active .component-SearchBox-iconContainer {
+    width: 0;
 }
 
 .component-SearchBox .component-SearchBox-iconContainer {
