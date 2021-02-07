@@ -1,9 +1,9 @@
 <template>
     <div class="component-SearchBox">
         <div class="component-SearchBox-iconContainer">
-            <FontIcon iconName="Search"></FontIcon>
+            <FontIcon iconName="Search" @click="focus"></FontIcon>
         </div>
-        <input class="component-SearchBox-field" type="text" v-model="keyword" :placeholder="placeholder" @focus="focus" @blur="blur"/>
+        <input ref="input" class="component-SearchBox-field" type="text" v-model="keyword" :placeholder="placeholder" @focus="focus" @blur="blur"/>
         <div class="component-SearchBox-clearButton" v-if="displayClearButton">
             <Button :iconProps="cancelIconProps" @click="clear"></Button>
         </div>
@@ -38,11 +38,14 @@ export default {
     methods: {
         clear() {
             this.keyword = '';
+            this.focus();
         },
         focus() {
+            this.$refs.input.focus();
             this.$el.classList.add('is-active');
         },
         blur() {
+            this.$refs.input.blur();
             this.$el.classList.remove('is-active');
         },
     }
