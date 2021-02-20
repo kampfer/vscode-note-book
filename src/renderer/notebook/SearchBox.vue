@@ -3,9 +3,17 @@
         <div class="component-SearchBox-iconContainer">
             <FontIcon iconName="Search" @click="focus"></FontIcon>
         </div>
-        <input ref="input" class="component-SearchBox-field" type="text" v-model="keyword" :placeholder="placeholder" @focus="focus" @blur="blur"/>
+        <input
+            ref="input"
+            class="component-SearchBox-field"
+            type="text"
+            v-model="keyword"
+            :placeholder="placeholder"
+            @focus="handleFocusAtInput"
+            @blur="handleBlurAtInput"
+        />
         <div class="component-SearchBox-clearButton" v-if="displayClearButton">
-            <Button :iconProps="cancelIconProps" @click="clear"></Button>
+            <Button :iconProps="cancelIconProps" class="clear-btn" @mousedown="handleMousedownAtBtn"></Button>
         </div>
     </div>
 </template>
@@ -25,6 +33,7 @@ export default {
     data() {
         return {
             keyword: '',
+            focused: false,
             cancelIconProps: {
                 iconName: 'Cancel'
             }
@@ -35,18 +44,36 @@ export default {
             return this.keyword.length > 0;
         }
     },
+    watch: {
+        focused(v) {
+            if (v) {
+                this.$el.classList.add('is-active');
+                this.$refs.input.focus();
+            } else {
+                this.$el.classList.remove('is-active');
+                this.$refs.input.blur();
+            }
+        }
+    },
     methods: {
-        clear() {
-            this.keyword = '';
+        handleFocusAtInput(e) {
             this.focus();
         },
+        handleBlurAtInput(e) {
+            this.blur();
+        },
+        handleMousedownAtBtn(e) {
+            e.preventDefault();
+            this.clear();
+        },
+        clear() {
+            this.keyword = '';
+        },
         focus() {
-            this.$refs.input.focus();
-            this.$el.classList.add('is-active');
+            this.focused = true;
         },
         blur() {
-            this.$refs.input.blur();
-            this.$el.classList.remove('is-active');
+            this.focused = false;
         },
     }
 }
