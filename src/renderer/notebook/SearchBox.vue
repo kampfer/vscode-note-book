@@ -62,6 +62,7 @@ export default {
         handleBlurAtInput(e) {
             this.blur();
         },
+        // mousedown 事件的默认行为是使除了你点击的对象之外的有焦点的对象失去焦点
         handleMousedownAtBtn(e) {
             e.preventDefault();
             this.clear();
@@ -118,19 +119,16 @@ export default {
 .component-SearchBox .component-SearchBox-field {
     border: none;
     outline: none;
-    flex: 1 1 0px;
     font-size: inherit;
     color: rgb(50, 49, 48);
+    flex: 1 1 0px;
     min-width: 0px;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .component-SearchBox .component-SearchBox-clearButton {
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    flex-basis: 32px;
     flex-shrink: 0;
     padding: 0px;
     margin: -1px 0px;

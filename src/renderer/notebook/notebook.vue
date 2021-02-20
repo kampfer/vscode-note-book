@@ -1,6 +1,8 @@
 <template>
     <div class="notebook">
-        <search-box placeholder="搜索"></search-box>
+        <div class="search-box-wrapper">
+            <search-box placeholder="搜索" class="my-search-box"></search-box>
+        </div>
         <div class="graph"></div>
     </div>
 </template>
@@ -105,4 +107,11 @@ export default {
 </script>
 
 <style lang="css" scoped>
+.search-box-wrapper {
+    padding: 20px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 200px;
+}
 </style>
