@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import NetworkGraph from './NetworkGraph';
+import { NetworkGraph } from '../my-graph/src';
 import SearchBox from './SearchBox.vue';
 
 const vscode = acquireVsCodeApi();
