@@ -1,0 +1,3 @@
+[submodule "src/renderer/my-graph"]
+	path = src/renderer/my-graph
+	url = https://github.com/kampfer/my-graph.git
