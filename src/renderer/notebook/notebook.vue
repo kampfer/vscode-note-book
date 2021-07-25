@@ -49,8 +49,7 @@ export default {
         this.graph = new NetworkGraph({
             width: window.innerWidth,
             height: window.innerHeight,
-            useClickSelect: true,
-            useZoom: true
+            behaviors: ['clickSelect', 'zoom']
         });
 
         this.graph.on('selectChange.node', (ids) => vscode.postMessage({
@@ -69,7 +68,7 @@ export default {
         });
 
         window.document.body.addEventListener('click', () => {
-            this.graph.clearSelect()
+            this.graph.clearSelect();
             vscode.postMessage({ command: 'clearSelect' });
         });
 
@@ -90,7 +89,9 @@ export default {
                     e.label = e.id;
                 });
 
-                this.graph.render(data);
+                this.graph.render(data, {
+                    autoLayout: true
+                });
 
             }
 
