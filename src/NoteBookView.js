@@ -37,7 +37,7 @@ class NoteBookView {
 
         panel.webview.onDidReceiveMessage(
             message => {
-console.log(message);
+
                 switch (message.command) {
                     case 'getGraphDataOfNoteBook':
                         return panel.webview.postMessage(this.getNetworkData());
