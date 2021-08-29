@@ -10,6 +10,7 @@ const utils = require('./utils');
 const NoteBookView = require('./NoteBookView');
 const markdownItTexmath = require('markdown-it-texmath');
 const katex = require('katex');
+const markdownItMarkmap = require('markdown-it-markmap2');
 
 const extensionName = 'vscode-note-book';
 
@@ -138,6 +139,7 @@ function activate(context) {
         extendMarkdownIt(md) {
 
             return md.use(markdownItCodepen)
+                .use(markdownItMarkmap)
                 .use(markdownItMermaid)
                 .use(duplexLinkPlugin(noteBook, true))
                 .use(markdownItTexmath, {

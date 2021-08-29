@@ -84,6 +84,7 @@
         "katex": "^0.12.0",
         "markdown-it": "^11.0.0",
         "markdown-it-codepen": "^1.0.1",
+        "markdown-it-markmap2": "^1.0.0",
         "markdown-it-mermaid-plugin": "^0.1.0",
         "markdown-it-texmath": "^0.7.1",
         "mermaid": "^8.8.3",
