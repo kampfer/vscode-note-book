@@ -2,15 +2,10 @@
 const vscode = require('vscode');
 const path = require('path');
 const fs = require('fs');
-const markdownItMermaid = require('markdown-it-mermaid-plugin');
-const markdownItCodepen = require('markdown-it-codepen');
-const NoteBook = require('./NoteBook');
-const duplexLinkPlugin = require('./markdown-it-duplex-link');
-const utils = require('./utils');
-const NoteBookView = require('./NoteBookView');
-const markdownItTexmath = require('markdown-it-texmath');
-const katex = require('katex');
-const markdownItMarkmap = require('markdown-it-markmap2');
+const NoteBook = require('./main/NoteBook');
+const utils = require('./main/utils');
+const NoteBookView = require('./main/NoteBookView');
+const extendMarkdownIt = require('./main/extendMarkdownIt');
 
 const extensionName = 'vscode-note-book';
 
@@ -137,17 +132,7 @@ function activate(context) {
 
     return {
         extendMarkdownIt(md) {
-
-            return md.use(markdownItCodepen)
-                .use(markdownItMarkmap)
-                .use(markdownItMermaid)
-                .use(duplexLinkPlugin(noteBook, true))
-                .use(markdownItTexmath, {
-                    engine: katex,
-                    delimiters: 'julia',
-                    katexOptions: { macros: { '\\RR': '\\mathbb{R}' } }
-                });
-
+            return extendMarkdownIt(md, noteBook);
         }
     };
 

@@ -2,12 +2,9 @@ const vscode = require('vscode');
 const MarkdownIt = require('markdown-it');
 const EventEmitter = require('events');
 const utils = require('./utils');
-const markdownItCodepen = require('markdown-it-codepen');
-const markdownItDuplexLink = require('./markdown-it-duplex-link');
-const markdownItTexmath = require('markdown-it-texmath');
-const markdownItMermaid = require('markdown-it-mermaid-plugin');
 const path = require('path');
 const hljs = require('highlight.js');
+const extendMarkdownIt = require('./extendMarkdownIt');
 
 class NoteView extends EventEmitter {
 
@@ -38,16 +35,8 @@ class NoteView extends EventEmitter {
                 return ''; // use external default escaping
             }
         });
-        md.use(markdownItCodepen)
-            .use(markdownItDuplexLink(noteBook, true))
-            .use(markdownItMermaid)
-            .use(markdownItTexmath, {
-                engine: require('katex'),
-                delimiters: 'julia',
-                katexOptions: { macros: { "\\RR": "\\mathbb{R}" } }
-            });
 
-        this.md = md;
+        this.md = extendMarkdownIt(md, noteBook);
 
     }
 
