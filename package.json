@@ -62,7 +62,7 @@
     "scripts": {
         "dev": "node build/build.dev.js",
         "test": "jest",
-        "package": "node build/build.prod.js & vsce package",
+        "package": "node build/build.prod.js & vsce package --yarn",
         "publish": "npm run package & vsce publish"
     },
     "devDependencies": {
