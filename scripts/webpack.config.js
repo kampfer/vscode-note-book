@@ -1,13 +1,12 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const { VueLoaderPlugin } = require("vue-loader");
 
 const mainConfig = {
     target: 'electron-main',
     externals: {
-        // the vscode-module is created on-the-fly and must be excluded. 
-        // Add other modules that cannot be webpack'ed, 
+        // the vscode-module is created on-the-fly and must be excluded.
+        // Add other modules that cannot be webpack'ed,
         // 📖 -> https://webpack.js.org/configuration/externals/
         vscode: 'commonjs vscode'
     },
@@ -38,17 +37,23 @@ const rendererConfig = {
     module: {
         rules: [
             {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                loader: 'babel-loader',
+                options: {
+                    presets: [
+                        '@babel/preset-react'
+                    ]
+                }
+            },
+            {
                 test: /\.css$/i,
                 use: [MiniCssExtractPlugin.loader, 'css-loader'],
             },
             {
                 test:/\.(woff|woff2|eot|otf|ttf|svg)$/,
                 use:'file-loader'
-            },
-            {
-                test: /\.vue$/,
-                loader: 'vue-loader'
-            },
+            }
         ],
     },
     resolve: {
@@ -58,7 +63,6 @@ const rendererConfig = {
     },
     plugins: [
         new MiniCssExtractPlugin(),
-        new VueLoaderPlugin(),
     ]
 };
 

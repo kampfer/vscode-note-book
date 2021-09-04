@@ -103,6 +103,7 @@ class NoteBookView {
                     ${this.getStyles()}
                 </head>
                 <body>
+                    <div id="app"></div>
                     ${this.getScripts(panel)}
                 </body>
                 </html>`;
@@ -129,7 +130,7 @@ class NoteBookView {
             vscode.window.showInformationMessage(`笔记【${noteName}】不存在！`);
             return;
         }
-        
+
         if (note === this.currentNote) return;
 
         this.currentNote = note;
