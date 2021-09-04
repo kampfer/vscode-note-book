@@ -74,7 +74,6 @@ export default class App extends React.Component {
                 data.nodes.forEach(n => n.label = n.id);
                 data.edges.forEach(e => {
                     e.id = `${e.source}-${e.target}`;
-                    e.label = e.id;
                 });
 
                 this.graph.render(data, {
