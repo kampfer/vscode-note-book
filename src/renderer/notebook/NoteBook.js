@@ -1,5 +1,4 @@
 import React from 'react';
-import Input from './Input.js';
 import { NetworkGraph } from '../my-graph/src';
 
 const vscode = acquireVsCodeApi();

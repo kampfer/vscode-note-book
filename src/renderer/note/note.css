@@ -3,6 +3,10 @@
 @import url("../../../node_modules/katex/dist/katex.min.css");
 @import url("../../../node_modules/markdown-it-texmath/css/texmath.css");
 
+html, body {
+    height: 100%;
+}
+
 /*
  * github-markdown-css
  * https://github.com/sindresorhus/github-markdown-css#usage
@@ -24,4 +28,8 @@
 /* codepen样式 */
 .cp_embed_wrapper {
     margin-bottom: 16px;
+}
+
+svg[id^="markmap"] {
+    border: 1px solid #ccc;
 }
