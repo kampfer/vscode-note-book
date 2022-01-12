@@ -86,7 +86,7 @@
         "github-markdown-css": "^4.0.0",
         "highlight.js": "^10.4.1",
         "katex": "^0.12.0",
-        "markdown-it": "^11.0.0",
+        "markdown-it": "^12.3.2",
         "markdown-it-codepen": "^1.0.1",
         "markdown-it-markmap2": "^1.0.0",
         "markdown-it-mermaid-plugin": "^0.1.0",
