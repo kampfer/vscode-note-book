@@ -109,28 +109,7 @@ class NoteView extends EventEmitter {
 
     getStyles() {
 
-        const styles = [
-            `<style>
-            .markdown-body {
-                box-sizing: border-box;
-                min-width: 200px;
-                max-width: 980px;
-                margin: 0 auto;
-                padding: 45px;
-            }
-
-            @media (max-width: 767px) {
-                .markdown-body {
-                    padding: 15px;
-                }
-            }
-
-            .cp_embed_wrapper {
-                margin-bottom: 16px;
-            }
-            </style>`
-        ];
-        const nodeModulesPath = path.join(__dirname, '../node_modules');
+        const styles = [];
 
         styles.push(
             `<link rel="stylesheet" href="${this.asWebviewUri(path.join(__dirname, '../dist/note.css'))}">`

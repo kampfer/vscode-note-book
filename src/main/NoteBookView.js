@@ -55,6 +55,7 @@ class NoteBookView {
         panel.onDidDispose(
             () => {
                 this._panel = null;
+                this.noteBook.off('store', this.onDidStore);
             },
             null,
             this.extensionContext.subscriptions
@@ -162,9 +163,11 @@ class NoteBookView {
 
     refreshView() {
 
-        this._panel.webview.postMessage({
-            command: 'refresh'
-        });
+        if (this._panel) {
+            this._panel.webview.postMessage({
+                command: 'refresh'
+            });
+        }
 
     }
 
